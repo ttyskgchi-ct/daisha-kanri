@@ -950,10 +950,26 @@ export default function App() {
     });
   };
 
+  // ★ 検索フィルタリング（車名・ナンバー・お客様名）
   const filteredCars = cars.filter((car) => {
-    const searchStr = `${car.car_name} ${car.number_plate}`.toLowerCase();
-    return searchStr.includes(filterText.toLowerCase());
+    if (!filterText.trim()) return true;
+    const keyword = filterText.toLowerCase().trim();
+
+    // 1. 車名・ナンバープレートに含まれるか
+    const carMatch = `${car.car_name} ${car.number_plate}`
+      .toLowerCase()
+      .includes(keyword);
+
+    // 2. その車両に紐づく確定予約の顧客名（customer_name）に含まれるか
+    const customerMatch = confirmedReservations.some(
+      (res) =>
+        res.car_id === car.id &&
+        res.customer_name.toLowerCase().includes(keyword),
+    );
+
+    return carMatch || customerMatch;
   });
+
   const availableSafeCars = getAvailableSafeCars();
   const selectedCarInfo = selectedReservation
     ? cars.find((c) => c.id === selectedReservation.car_id)
@@ -1141,11 +1157,11 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <input
               type="text"
-              placeholder="車名・ナンバーで検索"
+              placeholder="車名・ナンバー・お客様名で検索"
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
               style={{
-                width: "240px",
+                width: "260px",
                 padding: "6px 12px",
                 border: "1px solid #cbd5e1",
                 borderRadius: "6px",
