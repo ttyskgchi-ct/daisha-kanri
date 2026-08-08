@@ -963,6 +963,20 @@ export default function App() {
       return;
     }
 
+    // ★ 車検満了日・最終オイル交換日の未入力バリデーション
+    if (!carFormInspection && !carFormOil) {
+      alert("車検満了日と最終オイル交換日を入力してください。");
+      return;
+    }
+    if (!carFormInspection) {
+      alert("車検満了日を入力してください。");
+      return;
+    }
+    if (!carFormOil) {
+      alert("最終オイル交換日を入力してください。");
+      return;
+    }
+
     try {
       const carData = {
         car_name: carFormName,
@@ -991,16 +1005,16 @@ export default function App() {
 
       setIsCarModalOpen(false);
       await fetchData();
-    } catch (err) {
-    console.error("代車情報の保存に失敗しました:", {
-      message: err?.message,
-      details: err?.details,
-      hint: err?.hint,
-      code: err?.code,
-      fullError: err
-  });
-  
-  alert("保存に失敗しました。");
+    } catch (err: any) {
+      console.error("代車情報の保存に失敗しました:", {
+        message: err?.message,
+        details: err?.details,
+        hint: err?.hint,
+        code: err?.code,
+        fullError: err,
+      });
+
+      alert("保存に失敗しました。");
     }
   };
 
@@ -3660,7 +3674,7 @@ export default function App() {
                       marginBottom: "4px",
                     }}
                   >
-                    車両区分
+                    車両サイズ区分
                   </label>
                   <select
                     value={carFormSize}
@@ -3738,6 +3752,72 @@ export default function App() {
                 </div>
               </div>
 
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+                  gap: "12px",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                      color: "#334155",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    ステータス
+                  </label>
+                  <select
+                    value={carFormStatus}
+                    onChange={(e) =>
+                      setCarFormStatus(
+                        e.target.value as "貸出可" | "貸出不可",
+                      )
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "6px",
+                      backgroundColor: "#fff",
+                    }}
+                  >
+                    <option value="貸出可">貸出可</option>
+                    <option value="貸出不可">貸出不可</option>
+                  </select>
+                </div>
+                <div style={{ paddingTop: isMobile ? "0" : "18px" }}>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      fontWeight: "bold",
+                      color: "#334155",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={carFormEtc}
+                      onChange={(e) => setCarFormEtc(e.target.checked)}
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        accentColor: "#2563eb",
+                      }}
+                    />
+                    ETC車載器あり
+                  </label>
+                </div>
+              </div>
+
               <div>
                 <label
                   style={{
@@ -3751,7 +3831,7 @@ export default function App() {
                   備考 (任意)
                 </label>
                 <textarea
-                  placeholder="車両に関する注意点や傷の情報、特記事項など"
+                  placeholder="車両に関する特記事項など"
                   value={carFormNote}
                   onChange={(e) => setCarFormNote(e.target.value)}
                   style={{
@@ -3763,72 +3843,6 @@ export default function App() {
                     resize: "none",
                   }}
                 />
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: isMobile ? "column" : "row",
-                  justifyContent: "space-between",
-                  alignItems: isMobile ? "flex-start" : "center",
-                  gap: isMobile ? "12px" : "0",
-                  borderTop: "1px solid #f1f5f9",
-                  paddingTop: "12px",
-                  marginTop: "4px",
-                }}
-              >
-                <div>
-                  <label
-                    style={{
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                      color: "#334155",
-                      marginRight: "8px",
-                    }}
-                  >
-                    貸出ステータス
-                  </label>
-                  <select
-                    value={carFormStatus}
-                    onChange={(e) =>
-                      setCarFormStatus(e.target.value as "貸出可" | "貸出不可")
-                    }
-                    style={{
-                      padding: "6px 12px",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: "6px",
-                      backgroundColor: "#fff",
-                      fontSize: "12px",
-                    }}
-                  >
-                    <option value="貸出可">貸出可</option>
-                    <option value="貸出不可">貸出不可</option>
-                  </select>
-                </div>
-
-                <label
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    cursor: "pointer",
-                    fontSize: "13px",
-                    fontWeight: "bold",
-                    color: "#334155",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={carFormEtc}
-                    onChange={(e) => setCarFormEtc(e.target.checked)}
-                    style={{
-                      accentColor: "#2563eb",
-                      width: "16px",
-                      height: "16px",
-                    }}
-                  />
-                  ETC車載器あり
-                </label>
               </div>
             </div>
 
