@@ -11,7 +11,16 @@ import {
 } from "date-fns";
 import { ja } from "date-fns/locale";
 import { createClient } from "@supabase/supabase-js";
-import { Calendar, CalendarDays, Car, Plus } from "lucide-react";
+import {
+  Calendar,
+  CalendarDays,
+  Car,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  X,
+} from "lucide-react";
 import TomorrowRentalList from "./TomorrowRentalList";
 
 // ==========================================================
@@ -55,6 +64,250 @@ export interface DaishaReservation {
   size_limit?: "限定なし" | "軽自動車" | "普通車";
 }
 
+// ──────────────────────────────────────────────────────────
+// ★ SP用 アコーディオン車両カードコンポーネント
+// ──────────────────────────────────────────────────────────
+const CarAccordionItem: React.FC<{
+  car: DaishaMaster;
+  reservations: DaishaReservation[];
+  isExpanded: boolean;
+  onToggle: () => void;
+  onSelectReservation: (res: DaishaReservation) => void;
+}> = ({ car, reservations, isExpanded, onToggle, onSelectReservation }) => {
+  return (
+    <div
+      style={{
+        backgroundColor: "#fff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "8px",
+        marginBottom: "8px",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        onClick={onToggle}
+        style={{
+          padding: "12px 16px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          cursor: "pointer",
+          backgroundColor: isExpanded ? "#f8fafc" : "#fff",
+          borderBottom: isExpanded ? "1px solid #e2e8f0" : "none",
+        }}
+      >
+        <div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "4px",
+            }}
+          >
+            <span
+              style={{ fontWeight: "bold", fontSize: "15px", color: "#1e293b" }}
+            >
+              {car.car_name}
+            </span>
+            <span
+              style={{
+                fontSize: "11px",
+                fontWeight: "bold",
+                color: "#2563eb",
+                backgroundColor: "#eff6ff",
+                padding: "2px 8px",
+                borderRadius: "12px",
+              }}
+            >
+              {car.number_plate}
+            </span>
+          </div>
+          <div
+            style={{
+              fontSize: "12px",
+              color: "#64748b",
+              display: "flex",
+              gap: "12px",
+              alignItems: "center",
+            }}
+          >
+            <span>区分: {car.size_type}</span>
+            <span>ステータス: {car.status}</span>
+            <span
+              style={{
+                fontSize: "11px",
+                backgroundColor: "#f1f5f9",
+                padding: "1px 6px",
+                borderRadius: "4px",
+                color: "#475569",
+              }}
+            >
+              予約 {reservations.length}件
+            </span>
+          </div>
+        </div>
+        <div style={{ color: "#64748b", display: "flex", alignItems: "center" }}>
+          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        </div>
+      </div>
+
+      {isExpanded && (
+        <div style={{ padding: "12px 16px", backgroundColor: "#fff" }}>
+          {/* 車両詳細情報 */}
+          <div
+            style={{
+              fontSize: "11px",
+              color: "#64748b",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "8px",
+              marginBottom: "12px",
+              paddingBottom: "8px",
+              borderBottom: "1px dashed #e2e8f0",
+            }}
+          >
+            <span>色: {car.body_color || "未登録"}</span>
+            <span>|</span>
+            <span>ETC: {car.has_etc ? "あり" : "なし"}</span>
+            <span>|</span>
+            <span>
+              車検:{" "}
+              {car.inspection_date
+                ? format(new Date(car.inspection_date), "yy/MM/dd")
+                : "未登録"}
+            </span>
+            {car.note && (
+              <div
+                style={{ width: "100%", marginTop: "2px", color: "#475569" }}
+              >
+                備考: {car.note}
+              </div>
+            )}
+          </div>
+
+          {/* 確定予約一覧 */}
+          <div
+            style={{
+              fontSize: "12px",
+              fontWeight: "bold",
+              color: "#334155",
+              marginBottom: "8px",
+            }}
+          >
+            確定予約一覧
+          </div>
+          {reservations.length === 0 ? (
+            <div
+              style={{
+                fontSize: "12px",
+                color: "#94a3b8",
+                textAlign: "center",
+                padding: "12px 0",
+              }}
+            >
+              現在、確定した予約はありません
+            </div>
+          ) : (
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+            >
+              {reservations.map((res) => (
+                <div
+                  key={res.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectReservation(res);
+                  }}
+                  style={{
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "6px",
+                    padding: "10px 12px",
+                    backgroundColor: "#f8fafc",
+                    cursor: "pointer",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontWeight: "bold",
+                        fontSize: "13px",
+                        color: "#1e293b",
+                      }}
+                    >
+                      {res.customer_name} 様
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        padding: "2px 6px",
+                        borderRadius: "4px",
+                        backgroundColor: "#3b82f6",
+                        color: "#fff",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {res.purpose}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "#475569",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "2px",
+                    }}
+                  >
+                    <div>
+                      期間: {format(parseISO(res.start_at), "M/d HH:mm")} ～{" "}
+                      {format(parseISO(res.end_at), "M/d HH:mm")}
+                    </div>
+                    <div>
+                      車種: {res.car_type || "未入力"} | 担当: {res.staff_name}
+                    </div>
+                    {res.size_limit && res.size_limit !== "限定なし" && (
+                      <span
+                        style={{
+                          color: "#dc2626",
+                          fontWeight: "bold",
+                          fontSize: "10px",
+                          marginTop: "2px",
+                        }}
+                      >
+                        ※{res.size_limit === "軽自動車" ? "軽限定" : "普通車限定"}
+                      </span>
+                    )}
+                    {res.note && (
+                      <div
+                        style={{
+                          color: "#64748b",
+                          fontStyle: "italic",
+                          marginTop: "2px",
+                        }}
+                      >
+                        備考: {res.note}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function App() {
   // ─── メイン画面切り替え ───
   const [activeTab, setActiveTab] = useState<"calendar" | "cars" | "tomorrow">(
@@ -65,15 +318,39 @@ export default function App() {
   const [cars, setCars] = useState<DaishaMaster[]>([]);
   const [reservations, setReservations] = useState<DaishaReservation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [currentStartDate, setCurrentStartDate] = useState<Date>(
-    new Date(),
-  );
+  const [currentStartDate, setCurrentStartDate] = useState<Date>(new Date());
   const [filterText, setFilterText] = useState("");
   const [currentView, setCurrentView] = useState<"日" | "週" | "2週間" | "月">(
     "2週間",
   );
 
   const [hoveredResId, setHoveredResId] = useState<string | null>(null);
+
+  // SP用 アコーディオン開閉状態管理
+  const [expandedCarIds, setExpandedCarIds] = useState<Record<string, boolean>>(
+    {},
+  );
+
+  const toggleCarAccordion = (carId: string) => {
+    setExpandedCarIds((prev) => ({
+      ...prev,
+      [carId]: !prev[carId],
+    }));
+  };
+
+  // ──────────────────────────────────────────────────────────
+  // ★ 画面幅（SP判定）用 State と監視処理
+  // ──────────────────────────────────────────────────────────
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // リサイズ専用のState
   const [resizingResId, setResizingResId] = useState<string | null>(null);
@@ -443,7 +720,7 @@ export default function App() {
       const ratio = Math.min(Math.max(offsetX / rect.width, 0), 0.999);
       const targetDayIndex = Math.floor(ratio * daysCount);
       const clampedIndex = Math.min(Math.max(targetDayIndex, 0), daysCount - 1);
-      
+
       setResizingCurrentTargetDate(daysArray[clampedIndex]);
     };
 
@@ -757,7 +1034,7 @@ export default function App() {
     }
   };
 
-  // ─── 予約バー描画 ───
+  // ─── 予約バー描画 (PC用) ───
   const renderReservationBars = (carId: string) => {
     const carRes = confirmedReservations.filter((r) => r.car_id === carId);
     const oneDayWidthPercent = 100 / daysCount;
@@ -979,6 +1256,7 @@ export default function App() {
     <div
       style={{
         display: "flex",
+        flexDirection: isMobile ? "column" : "row",
         height: "100vh",
         backgroundColor: "#f8fafc",
         fontFamily:
@@ -989,41 +1267,55 @@ export default function App() {
       {/* ─── サイドメニュー ─── */}
       <aside
         style={{
-          width: "240px",
+          width: isMobile ? "100%" : "240px",
+          minWidth: isMobile ? "100%" : "240px",
           backgroundColor: "#fff",
-          borderRight: "1px solid #e2e8f0",
+          borderRight: isMobile ? "none" : "1px solid #e2e8f0",
+          borderBottom: isMobile ? "1px solid #e2e8f0" : "none",
           display: "flex",
-          flexDirection: "column",
+          flexDirection: isMobile ? "row" : "column",
+          flexWrap: isMobile ? "wrap" : "nowrap",
+          justifyContent: isMobile ? "space-between" : "flex-start",
+          alignItems: isMobile ? "center" : "stretch",
+          padding: isMobile ? "8px 16px" : "0",
+          zIndex: 50,
+          boxSizing: "border-box",
         }}
       >
         <div
           style={{
-            padding: "20px",
+            padding: isMobile ? "0" : "20px",
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            borderBottom: "1px solid #f1f5f9",
+            borderBottom: isMobile ? "none" : "1px solid #f1f5f9",
           }}
         >
           <span
-            style={{ fontSize: "16px", fontWeight: "bold", color: "#0f172a" }}
+            style={{
+              fontSize: isMobile ? "14px" : "16px",
+              fontWeight: "bold",
+              color: "#0f172a",
+              whiteSpace: "nowrap",
+            }}
           >
             代車管理システム
           </span>
         </div>
         <nav
           style={{
-            flex: 1,
-            padding: "16px",
+            flex: isMobile ? "none" : 1,
+            padding: isMobile ? "0" : "16px",
             display: "flex",
-            flexDirection: "column",
-            gap: "6px",
+            flexDirection: isMobile ? "row" : "column",
+            gap: isMobile ? "4px" : "6px",
+            overflowX: isMobile ? "auto" : "visible",
           }}
         >
           <button
             onClick={() => setActiveTab("calendar")}
             style={{
-              padding: "12px 16px",
+              padding: isMobile ? "6px 10px" : "12px 16px",
               borderRadius: "8px",
               backgroundColor:
                 activeTab === "calendar" ? "#eff6ff" : "transparent",
@@ -1031,22 +1323,23 @@ export default function App() {
               fontWeight: activeTab === "calendar" ? "bold" : "500",
               border: "none",
               textAlign: "left",
-              fontSize: "14px",
+              fontSize: isMobile ? "12px" : "14px",
               cursor: "pointer",
               transition: "all 0.15s ease",
               display: "flex",
               alignItems: "center",
-              gap: "10px",
+              gap: isMobile ? "4px" : "10px",
+              whiteSpace: "nowrap",
             }}
           >
-            <Calendar size={18} />
+            <Calendar size={isMobile ? 16 : 18} />
             <span>カレンダー</span>
           </button>
 
           <button
             onClick={() => setActiveTab("tomorrow")}
             style={{
-              padding: "12px 16px",
+              padding: isMobile ? "6px 10px" : "12px 16px",
               borderRadius: "8px",
               backgroundColor:
                 activeTab === "tomorrow" ? "#eff6ff" : "transparent",
@@ -1054,43 +1347,50 @@ export default function App() {
               fontWeight: activeTab === "tomorrow" ? "bold" : "500",
               border: "none",
               textAlign: "left",
-              fontSize: "14px",
+              fontSize: isMobile ? "12px" : "14px",
               cursor: "pointer",
               transition: "all 0.15s ease",
               display: "flex",
               alignItems: "center",
-              gap: "10px",
+              gap: isMobile ? "4px" : "10px",
+              whiteSpace: "nowrap",
             }}
           >
-            <CalendarDays size={18} />
+            <CalendarDays size={isMobile ? 16 : 18} />
             <span>明日貸出予定</span>
           </button>
 
           <button
             onClick={() => setActiveTab("cars")}
             style={{
-              padding: "12px 16px",
+              padding: isMobile ? "6px 10px" : "12px 16px",
               borderRadius: "8px",
               backgroundColor: activeTab === "cars" ? "#eff6ff" : "transparent",
               color: activeTab === "cars" ? "#2563eb" : "#475569",
               fontWeight: activeTab === "cars" ? "bold" : "500",
               border: "none",
               textAlign: "left",
-              fontSize: "14px",
+              fontSize: isMobile ? "12px" : "14px",
               cursor: "pointer",
               transition: "all 0.15s ease",
               display: "flex",
               alignItems: "center",
-              gap: "10px",
+              gap: isMobile ? "4px" : "10px",
+              whiteSpace: "nowrap",
             }}
           >
-            <Car size={18} />
+            <Car size={isMobile ? 16 : 18} />
             <span>代車一覧</span>
           </button>
         </nav>
 
-        {activeTab === "calendar" && (
-          <div style={{ padding: "16px", borderTop: "1px solid #f1f5f9" }}>
+        {!isMobile && activeTab === "calendar" && (
+          <div
+            style={{
+              padding: "16px",
+              borderTop: "1px solid #f1f5f9",
+            }}
+          >
             <button
               onClick={() => {
                 const now = new Date();
@@ -1115,6 +1415,7 @@ export default function App() {
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "8px",
+                whiteSpace: "nowrap",
               }}
             >
               <Plus size={18} />
@@ -1136,17 +1437,23 @@ export default function App() {
       >
         <header
           style={{
-            height: "60px",
+            height: isMobile ? "auto" : "60px",
             backgroundColor: "#fff",
             borderBottom: "1px solid #e2e8f0",
             display: "flex",
-            alignItems: "center",
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "stretch" : "center",
             justifyContent: "space-between",
-            padding: "0 24px",
+            padding: isMobile ? "12px 16px" : "0 24px",
+            gap: isMobile ? "8px" : "0",
           }}
         >
           <span
-            style={{ fontSize: "18px", fontWeight: "bold", color: "#1e293b" }}
+            style={{
+              fontSize: isMobile ? "16px" : "18px",
+              fontWeight: "bold",
+              color: "#1e293b",
+            }}
           >
             {activeTab === "calendar"
               ? "代車貸出状況"
@@ -1154,530 +1461,639 @@ export default function App() {
                 ? "代車マスター管理"
                 : "明日貸出予定一覧"}
           </span>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <input
-              type="text"
-              placeholder="車名・ナンバー・お客様名で検索"
-              value={filterText}
-              onChange={(e) => setFilterText(e.target.value)}
-              style={{
-                width: "260px",
-                padding: "6px 12px",
-                border: "1px solid #cbd5e1",
-                borderRadius: "6px",
-                fontSize: "13px",
-              }}
-            />
-          </div>
+          {!isMobile && (
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <input
+                type="text"
+                placeholder="車名・ナンバー・お客様名で検索"
+                value={filterText}
+                onChange={(e) => setFilterText(e.target.value)}
+                style={{
+                  width: "260px",
+                  padding: "6px 12px",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: "6px",
+                  fontSize: "13px",
+                }}
+              />
+            </div>
+          )}
         </header>
 
         {/* ─── タブ1：カレンダー画面 ─── */}
         {activeTab === "calendar" && (
-          <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-            {/* 保留エリア（幅を220pxに変更） */}
-            <section
-              style={{
-                width: "220px",
-                minWidth: "220px",
-                backgroundColor: "#fff",
-                borderRight: "1px solid #e2e8f0",
-                display: "flex",
-                flexDirection: "column",
-                padding: "16px",
-              }}
-            >
-              <h3
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: isMobile ? "column" : "row",
+              overflow: "hidden",
+            }}
+          >
+            {/* 保留エリア (PC版のみ表示・SP版では非表示) */}
+            {!isMobile && (
+              <section
                 style={{
-                  margin: "0 0 12px 0",
-                  fontSize: "14px",
-                  fontWeight: "bold",
-                  color: "#334155",
+                  width: "220px",
+                  minWidth: "220px",
+                  backgroundColor: "#fff",
+                  borderRight: "1px solid #e2e8f0",
+                  display: "flex",
+                  flexDirection: "column",
+                  padding: "16px",
                 }}
               >
-                保留エリア
-                <span
+                <h3
                   style={{
-                    fontSize: "11px",
-                    color: "#94a3b8",
-                    fontWeight: "normal",
-                    marginLeft: "4px",
+                    margin: "0 0 8px 0",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    color: "#334155",
                   }}
                 >
-                  (ドラッグして配置)
-                </span>
-              </h3>
-              <div
-                style={{
-                  flex: 1,
-                  overflowY: "auto",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                }}
-              >
-                {pendingReservations.length === 0 ? (
-                  <div
+                  保留エリア
+                  <span
                     style={{
-                      padding: "20px",
-                      textAlign: "center",
+                      fontSize: "11px",
                       color: "#94a3b8",
-                      fontSize: "12px",
+                      fontWeight: "normal",
+                      marginLeft: "4px",
                     }}
                   >
-                    保留中の予約はありません
-                  </div>
-                ) : (
-                  pendingReservations.map((res) => (
+                    (ドラッグして配置)
+                  </span>
+                </h3>
+                <div
+                  style={{
+                    flex: 1,
+                    overflowY: "auto",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  }}
+                >
+                  {pendingReservations.length === 0 ? (
                     <div
-                      key={res.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, res.id)}
-                      onClick={() => openDetailModal(res)}
                       style={{
-                        border: "1px solid #e2e8f0",
-                        borderRadius: "8px",
-                        padding: "12px",
-                        backgroundColor: "#fff",
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-                        cursor: "grab",
+                        padding: "20px",
+                        textAlign: "center",
+                        color: "#94a3b8",
+                        fontSize: "12px",
+                        width: "100%",
                       }}
                     >
+                      保留中の予約はありません
+                    </div>
+                  ) : (
+                    pendingReservations.map((res) => (
                       <div
+                        key={res.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, res.id)}
+                        onClick={() => openDetailModal(res)}
                         style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          marginBottom: "6px",
-                          alignItems: "center",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "8px",
+                          padding: "12px",
+                          backgroundColor: "#fff",
+                          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                          cursor: "grab",
+                          flexShrink: 0,
                         }}
                       >
-                        <span
+                        <div
                           style={{
-                            fontSize: "14px",
-                            fontWeight: "bold",
-                            color: "#1e293b",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            marginBottom: "6px",
+                            alignItems: "center",
                           }}
                         >
-                          {res.customer_name} 様
-                        </span>
-                        <span
-                          style={{
-                            fontSize: "10px",
-                            padding: "2px 6px",
-                            borderRadius: "4px",
-                            backgroundColor: res.purpose.includes("車検")
-                              ? "#eff6ff"
-                              : "#f0fdf4",
-                            color: res.purpose.includes("車検")
-                              ? "#3b82f6"
-                              : "#16a34a",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          {res.purpose.includes("車検") ? "新規" : "リピート"}
-                        </span>
-                      </div>
-
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "3px",
-                          fontSize: "12px",
-                          color: "#475569",
-                          borderTop: "1px dashed #f1f5f9",
-                          paddingTop: "6px",
-                          marginBottom: "6px",
-                        }}
-                      >
-                        <div>
-                          <span style={{ color: "#94a3b8" }}>預かり車種:</span>{" "}
-                          {res.car_type}
-                        </div>
-                        <div>
-                          <span style={{ color: "#94a3b8" }}>用件・目的:</span>{" "}
-                          {res.purpose}
-                        </div>
-                        <div>
-                          <span style={{ color: "#94a3b8" }}>自社担当者:</span>{" "}
-                          {res.staff_name}
-                        </div>
-                        {res.note && (
-                          <div
+                          <span
                             style={{
-                              color: "#64748b",
-                              fontStyle: "italic",
-                              backgroundColor: "#f8fafc",
-                              padding: "4px 6px",
-                              borderRadius: "4px",
-                              marginTop: "2px",
+                              fontSize: "14px",
+                              fontWeight: "bold",
+                              color: "#1e293b",
                             }}
                           >
-                            備考: {res.note}
+                            {res.customer_name} 様
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "10px",
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                              backgroundColor: res.purpose.includes("車検")
+                                ? "#eff6ff"
+                                : "#f0fdf4",
+                              color: res.purpose.includes("車検")
+                                ? "#3b82f6"
+                                : "#16a34a",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            {res.purpose.includes("車検") ? "新規" : "リピート"}
+                          </span>
+                        </div>
+
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "3px",
+                            fontSize: "12px",
+                            color: "#475569",
+                            borderTop: "1px dashed #f1f5f9",
+                            paddingTop: "6px",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          <div>
+                            <span style={{ color: "#94a3b8" }}>預かり車種:</span>{" "}
+                            {res.car_type}
                           </div>
-                        )}
+                          <div>
+                            <span style={{ color: "#94a3b8" }}>用件・目的:</span>{" "}
+                            {res.purpose}
+                          </div>
+                          <div>
+                            <span style={{ color: "#94a3b8" }}>自社担当者:</span>{" "}
+                            {res.staff_name}
+                          </div>
+                          {res.note && (
+                            <div
+                              style={{
+                                color: "#64748b",
+                                fontStyle: "italic",
+                                backgroundColor: "#f8fafc",
+                                padding: "4px 6px",
+                                borderRadius: "4px",
+                                marginTop: "2px",
+                              }}
+                            >
+                              備考: {res.note}
+                            </div>
+                          )}
+                        </div>
+
+                        <div
+                          style={{
+                            fontSize: "11px",
+                            color: "#64748b",
+                            textAlign: "right",
+                            borderTop: "1px solid #f8fafc",
+                            paddingTop: "4px",
+                          }}
+                        >
+                          {format(parseISO(res.start_at), "MM/dd HH:mm")} ～{" "}
+                          {format(parseISO(res.end_at), "MM/dd HH:mm")}
+                        </div>
                       </div>
+                    ))
+                  )}
+                </div>
 
-                      <div
-                        style={{
-                          fontSize: "11px",
-                          color: "#64748b",
-                          textAlign: "right",
-                          borderTop: "1px solid #f8fafc",
-                          paddingTop: "4px",
-                        }}
-                      >
-                        {format(parseISO(res.start_at), "MM/dd HH:mm")} ～{" "}
-                        {format(parseISO(res.end_at), "MM/dd HH:mm")}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+                <div
+                  onDragOver={handleDragOver}
+                  onDragEnter={() => setIsDragOverPending(true)}
+                  onDragLeave={() => setIsDragOverPending(false)}
+                  onDrop={handleDropOnPendingZone}
+                  style={{
+                    marginTop: "12px",
+                    border: isDragOverPending
+                      ? "2px dashed #2563eb"
+                      : "2px dashed #cbd5e1",
+                    borderRadius: "8px",
+                    padding: "14px",
+                    textAlign: "center",
+                    color: isDragOverPending ? "#2563eb" : "#64748b",
+                    fontSize: "12px",
+                    backgroundColor: isDragOverPending ? "#eff6ff" : "#f8fafc",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "4px",
+                    cursor: "copy",
+                    transition: "all 0.15s ease-in-out",
+                    fontWeight: isDragOverPending ? "bold" : "normal",
+                    transform: isDragOverPending ? "scale(1.02)" : "scale(1)",
+                  }}
+                >
+                  <span style={{ pointerEvents: "none" }}>
+                    ここにドラッグして
+                  </span>
+                  <span style={{ pointerEvents: "none" }}>保留リストに追加</span>
+                </div>
+              </section>
+            )}
 
-              <div
-                onDragOver={handleDragOver}
-                onDragEnter={() => setIsDragOverPending(true)}
-                onDragLeave={() => setIsDragOverPending(false)}
-                onDrop={handleDropOnPendingZone}
-                style={{
-                  marginTop: "12px",
-                  border: isDragOverPending
-                    ? "2px dashed #2563eb"
-                    : "2px dashed #cbd5e1",
-                  borderRadius: "8px",
-                  padding: "14px",
-                  textAlign: "center",
-                  color: isDragOverPending ? "#2563eb" : "#64748b",
-                  fontSize: "12px",
-                  backgroundColor: isDragOverPending ? "#eff6ff" : "#f8fafc",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "4px",
-                  cursor: "copy",
-                  transition: "all 0.15s ease-in-out",
-                  fontWeight: isDragOverPending ? "bold" : "normal",
-                  transform: isDragOverPending ? "scale(1.02)" : "scale(1)",
-                }}
-              >
-                <span style={{ pointerEvents: "none" }}>
-                  ここにドラッグして
-                </span>
-                <span style={{ pointerEvents: "none" }}>保留リストに追加</span>
-              </div>
-            </section>
-
-            {/* タイムライン表示 */}
+            {/* メインビュー（SP: アコーディオン一覧 / PC: タイムライン） */}
             <section
               style={{
                 flex: 1,
                 display: "flex",
                 flexDirection: "column",
                 overflow: "hidden",
-                padding: "20px",
+                padding: isMobile ? "12px" : "20px",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "16px",
-                }}
-              >
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
-                >
-                  <button
-                    onClick={() => setCurrentStartDate(new Date())}
-                    style={{
-                      padding: "6px 12px",
-                      backgroundColor: "#fff",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: "6px",
-                      fontSize: "13px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    今日
-                  </button>
-                  <button
-                    onClick={() =>
-                      setCurrentStartDate(addDays(currentStartDate, -7))
-                    }
-                    style={{
-                      padding: "6px 10px",
-                      backgroundColor: "#fff",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: "6px",
-                      fontSize: "13px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    &lt;
-                  </button>
-                  <button
-                    onClick={() =>
-                      setCurrentStartDate(addDays(currentStartDate, 7))
-                    }
-                    style={{
-                      padding: "6px 10px",
-                      backgroundColor: "#fff",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: "6px",
-                      fontSize: "13px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    &gt;
-                  </button>
-                  <span
-                    style={{
-                      fontSize: "15px",
-                      fontWeight: "bold",
-                      marginLeft: "8px",
-                      color: "#1e293b",
-                    }}
-                  >
-                    {format(daysArray[0], "yyyy年M月d日")} ～{" "}
-                    {format(daysArray[daysCount - 1], "M月d日")}
-                  </span>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    backgroundColor: "#e2e8f0",
-                    padding: "2px",
-                    borderRadius: "6px",
-                  }}
-                >
-                  {(["日", "週", "2週間", "月"] as const).map((view) => (
-                    <button
-                      key={view}
-                      onClick={() => setCurrentView(view)}
+              {isMobile ? (
+                /* 【SP用表示】アコーディオン一覧 ＋ 上部検索バー */
+                <div style={{ flex: 1, overflowY: "auto", paddingRight: "2px" }}>
+                  {/* 常時配置の検索欄 (インクリメンタル検索 + クリアボタン) */}
+                  <div style={{ position: "relative", marginBottom: "12px" }}>
+                    <Search
+                      size={16}
                       style={{
-                        padding: "4px 10px",
-                        fontSize: "12px",
-                        border: "none",
-                        borderRadius: "4px",
-                        backgroundColor:
-                          currentView === view ? "#1e3a8a" : "transparent",
-                        color: currentView === view ? "#fff" : "#475569",
-                        fontWeight: currentView === view ? "bold" : "normal",
-                        cursor: "pointer",
+                        position: "absolute",
+                        left: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "#94a3b8",
+                      }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="車名・ナンバー・お客様名で検索"
+                      value={filterText}
+                      onChange={(e) => setFilterText(e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "8px 32px 8px 32px",
+                        border: "1px solid #cbd5e1",
+                        borderRadius: "8px",
+                        fontSize: "13px",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                    {filterText && (
+                      <button
+                        onClick={() => setFilterText("")}
+                        style={{
+                          position: "absolute",
+                          right: "8px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          background: "none",
+                          border: "none",
+                          color: "#94a3b8",
+                          cursor: "pointer",
+                          padding: "4px",
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* アコーディオン一覧 */}
+                  {filteredCars.length === 0 ? (
+                    <div
+                      style={{
+                        padding: "20px",
+                        textAlign: "center",
+                        color: "#94a3b8",
+                        fontSize: "13px",
                       }}
                     >
-                      {view}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* カレンダー本体 */}
-              <div
-                style={{
-                  flex: 1,
-                  backgroundColor: "#fff",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "12px",
-                  display: "flex",
-                  flexDirection: "column",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    borderBottom: "1px solid #e2e8f0",
-                    backgroundColor: "#f8fafc",
-                    height: "50px",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "220px",
-                      minWidth: "220px",
-                      borderRight: "1px solid #e2e8f0",
-                      display: "flex",
-                      alignItems: "center",
-                      paddingLeft: "16px",
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                      color: "#64748b",
-                    }}
-                  >
-                    車両
-                  </div>
-                  <div style={{ flex: 1, display: "flex" }}>
-                    {daysArray.map((day, idx) => {
-                      const dayOfWeek = format(day, "E");
-                      const isSat = dayOfWeek === "土" || dayOfWeek === "Sat";
-                      const isSun = dayOfWeek === "日" || dayOfWeek === "Sun";
-                      const dayColor = isSat
-                        ? "#2563eb"
-                        : isSun
-                          ? "#dc2626"
-                          : "#1e293b";
-                      return (
-                        <div
-                          key={idx}
-                          onClick={() => setCurrentStartDate(day)}
-                          style={{
-                            flex: 1,
-                            borderRight:
-                              idx < daysCount - 1
-                                ? "1px solid #e2e8f0"
-                                : "none",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            transition: "background-color 0.2s",
-                          }}
-                          onMouseOver={(e) =>
-                            (e.currentTarget.style.backgroundColor = "#f1f5f9")
-                          }
-                          onMouseOut={(e) =>
-                            (e.currentTarget.style.backgroundColor =
-                              "transparent")
-                          }
-                        >
-                          <span style={{ fontSize: "11px", color: "#64748b" }}>
-                            {format(day, "E", { locale: ja })}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: "14px",
-                              fontWeight: "bold",
-                              color: dayColor,
-                            }}
-                          >
-                            {format(day, "d")}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div style={{ flex: 1, overflowY: "auto" }}>
-                  {loading ? (
-                    <div style={{ padding: "40px", textAlign: "center" }}>
-                      データを読み込み中...
+                      該当する車両がありません
                     </div>
                   ) : (
                     filteredCars.map((car) => {
-                      const carStyle = getCarStyles(car);
-                      return (
-                        <div
-                          key={car.id}
-                          style={{
-                            display: "flex",
-                            borderBottom: "1px solid #f1f5f9",
-                            minHeight: "95px",
-                            position: "relative",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: "220px",
-                              minWidth: "220px",
-                              borderRight: "1px solid #e2e8f0",
-                              padding: "12px",
-                              transition: "background-color 0.2s",
-                              ...carStyle,
-                              display: "flex",
-                              flexDirection: "column",
-                              justifyContent: "center",
-                              zIndex: 10,
-                            }}
-                          >
-                            <div
-                              style={{ fontSize: "14px", fontWeight: "bold" }}
-                            >
-                              {car.car_name}{" "}
-                              <span style={{ opacity: 0.8 }}>
-                                ({car.number_plate})
-                              </span>
-                            </div>
-                            <div
-                              style={{
-                                fontSize: "11px",
-                                opacity: 0.9,
-                                marginTop: "4px",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "6px",
-                                flexWrap: "wrap",
-                              }}
-                            >
-                              <span>{car.body_color}</span>
-                              <span>|</span>
-                              {car.has_etc && (
-                                <span
-                                  style={{
-                                    backgroundColor: "#10b981",
-                                    color: "#fff",
-                                    fontSize: "9px",
-                                    padding: "1px 4px",
-                                    borderRadius: "3px",
-                                    fontWeight: "bold",
-                                  }}
-                                >
-                                  ETC
-                                </span>
-                              )}
-                              <span>|</span>
-                              <span
-                                style={{ fontSize: "10px", fontWeight: "500" }}
-                              >
-                                検:{" "}
-                                {car.inspection_date
-                                  ? format(
-                                      new Date(car.inspection_date),
-                                      "yy/MM/dd",
-                                    )
-                                  : "未登録"}
-                              </span>
-                            </div>
-                          </div>
+                      const carReservations = confirmedReservations.filter(
+                        (r) => r.car_id === car.id,
+                      );
+                      const keyword = filterText.toLowerCase().trim();
+                      const isCustomerMatch =
+                        keyword !== "" &&
+                        carReservations.some((res) =>
+                          res.customer_name.toLowerCase().includes(keyword),
+                        );
+                      // お客様名検索時は該当アコーディオンを自動展開
+                      const isExpanded =
+                        expandedCarIds[car.id] ?? isCustomerMatch;
 
-                          <div
-                            ref={calendarGridRef}
-                            style={{
-                              flex: 1,
-                              display: "flex",
-                              position: "relative",
-                            }}
-                            onDragOver={handleDragOver}
-                            onDrop={(e) => handleGridCellDrop(e, car.id)}
-                          >
-                            {daysArray.map((_, idx) => (
-                              <div
-                                key={idx}
-                                style={{
-                                  flex: 1,
-                                  borderRight:
-                                    idx < daysCount - 1
-                                      ? "1px solid #f1f5f9"
-                                      : "none",
-                                  height: "100%",
-                                  transition: "background-color 0.15s",
-                                  position: "relative",
-                                  zIndex: 1,
-                                }}
-                              />
-                            ))}
-                            {renderReservationBars(car.id)}
-                          </div>
-                        </div>
+                      return (
+                        <CarAccordionItem
+                          key={car.id}
+                          car={car}
+                          reservations={carReservations}
+                          isExpanded={isExpanded}
+                          onToggle={() => toggleCarAccordion(car.id)}
+                          onSelectReservation={(res) => openDetailModal(res)}
+                        />
                       );
                     })
                   )}
                 </div>
-              </div>
+              ) : (
+                /* 【PC用表示】既存のカレンダー表示 */
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                    >
+                      <button
+                        onClick={() => setCurrentStartDate(new Date())}
+                        style={{
+                          padding: "6px 12px",
+                          backgroundColor: "#fff",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "6px",
+                          fontSize: "13px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        今日
+                      </button>
+                      <button
+                        onClick={() =>
+                          setCurrentStartDate(addDays(currentStartDate, -7))
+                        }
+                        style={{
+                          padding: "6px 10px",
+                          backgroundColor: "#fff",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "6px",
+                          fontSize: "13px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        &lt;
+                      </button>
+                      <button
+                        onClick={() =>
+                          setCurrentStartDate(addDays(currentStartDate, 7))
+                        }
+                        style={{
+                          padding: "6px 10px",
+                          backgroundColor: "#fff",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "6px",
+                          fontSize: "13px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        &gt;
+                      </button>
+                      <span
+                        style={{
+                          fontSize: "15px",
+                          fontWeight: "bold",
+                          marginLeft: "8px",
+                          color: "#1e293b",
+                        }}
+                      >
+                        {format(daysArray[0], "yyyy年M月d日")} ～{" "}
+                        {format(daysArray[daysCount - 1], "M月d日")}
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        backgroundColor: "#e2e8f0",
+                        padding: "2px",
+                        borderRadius: "6px",
+                      }}
+                    >
+                      {(["日", "週", "2週間", "月"] as const).map((view) => (
+                        <button
+                          key={view}
+                          onClick={() => setCurrentView(view)}
+                          style={{
+                            padding: "4px 10px",
+                            fontSize: "12px",
+                            border: "none",
+                            borderRadius: "4px",
+                            backgroundColor:
+                              currentView === view ? "#1e3a8a" : "transparent",
+                            color: currentView === view ? "#fff" : "#475569",
+                            fontWeight: currentView === view ? "bold" : "normal",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {view}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* カレンダー本体 */}
+                  <div
+                    style={{
+                      flex: 1,
+                      backgroundColor: "#fff",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "12px",
+                      display: "flex",
+                      flexDirection: "column",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        borderBottom: "1px solid #e2e8f0",
+                        backgroundColor: "#f8fafc",
+                        height: "50px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "220px",
+                          minWidth: "220px",
+                          borderRight: "1px solid #e2e8f0",
+                          display: "flex",
+                          alignItems: "center",
+                          paddingLeft: "16px",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          color: "#64748b",
+                        }}
+                      >
+                        車両
+                      </div>
+                      <div style={{ flex: 1, display: "flex" }}>
+                        {daysArray.map((day, idx) => {
+                          const dayOfWeek = format(day, "E");
+                          const isSat = dayOfWeek === "土" || dayOfWeek === "Sat";
+                          const isSun = dayOfWeek === "日" || dayOfWeek === "Sun";
+                          const dayColor = isSat
+                            ? "#2563eb"
+                            : isSun
+                              ? "#dc2626"
+                              : "#1e293b";
+                          return (
+                            <div
+                              key={idx}
+                              onClick={() => setCurrentStartDate(day)}
+                              style={{
+                                flex: 1,
+                                borderRight:
+                                  idx < daysCount - 1
+                                    ? "1px solid #e2e8f0"
+                                    : "none",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "pointer",
+                                transition: "background-color 0.2s",
+                              }}
+                              onMouseOver={(e) =>
+                                (e.currentTarget.style.backgroundColor = "#f1f5f9")
+                              }
+                              onMouseOut={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                  "transparent")
+                              }
+                            >
+                              <span style={{ fontSize: "11px", color: "#64748b" }}>
+                                {format(day, "E", { locale: ja })}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: "14px",
+                                  fontWeight: "bold",
+                                  color: dayColor,
+                                }}
+                              >
+                                {format(day, "d")}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div style={{ flex: 1, overflowY: "auto" }}>
+                      {loading ? (
+                        <div style={{ padding: "40px", textAlign: "center" }}>
+                          データを読み込み中...
+                        </div>
+                      ) : (
+                        filteredCars.map((car) => {
+                          const carStyle = getCarStyles(car);
+                          return (
+                            <div
+                              key={car.id}
+                              style={{
+                                display: "flex",
+                                borderBottom: "1px solid #f1f5f9",
+                                minHeight: "95px",
+                                position: "relative",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: "220px",
+                                  minWidth: "220px",
+                                  borderRight: "1px solid #e2e8f0",
+                                  padding: "12px",
+                                  transition: "background-color 0.2s",
+                                  ...carStyle,
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  zIndex: 10,
+                                }}
+                              >
+                                <div
+                                  style={{ fontSize: "14px", fontWeight: "bold" }}
+                                >
+                                  {car.car_name}{" "}
+                                  <span style={{ opacity: 0.8 }}>
+                                    ({car.number_plate})
+                                  </span>
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "11px",
+                                    opacity: 0.9,
+                                    marginTop: "4px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "6px",
+                                    flexWrap: "wrap",
+                                  }}
+                                >
+                                  <span>{car.body_color}</span>
+                                  <span>|</span>
+                                  {car.has_etc && (
+                                    <span
+                                      style={{
+                                        backgroundColor: "#10b981",
+                                        color: "#fff",
+                                        fontSize: "9px",
+                                        padding: "1px 4px",
+                                        borderRadius: "3px",
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      ETC
+                                    </span>
+                                  )}
+                                  <span>|</span>
+                                  <span
+                                    style={{ fontSize: "10px", fontWeight: "500" }}
+                                  >
+                                    検:{" "}
+                                    {car.inspection_date
+                                      ? format(
+                                          new Date(car.inspection_date),
+                                          "yy/MM/dd",
+                                        )
+                                      : "未登録"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div
+                                ref={calendarGridRef}
+                                style={{
+                                  flex: 1,
+                                  display: "flex",
+                                  position: "relative",
+                                }}
+                                onDragOver={handleDragOver}
+                                onDrop={(e) => handleGridCellDrop(e, car.id)}
+                              >
+                                {daysArray.map((_, idx) => (
+                                  <div
+                                    key={idx}
+                                    style={{
+                                      flex: 1,
+                                      borderRight:
+                                        idx < daysCount - 1
+                                          ? "1px solid #f1f5f9"
+                                          : "none",
+                                      height: "100%",
+                                      transition: "background-color 0.15s",
+                                      position: "relative",
+                                      zIndex: 1,
+                                    }}
+                                  />
+                                ))}
+                                {renderReservationBars(car.id)}
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </section>
           </div>
         )}
@@ -1687,7 +2103,7 @@ export default function App() {
           <div
             style={{
               flex: 1,
-              padding: "24px",
+              padding: isMobile ? "12px" : "24px",
               overflowY: "auto",
               display: "flex",
               flexDirection: "column",
@@ -1697,8 +2113,10 @@ export default function App() {
             <div
               style={{
                 display: "flex",
+                flexDirection: isMobile ? "column" : "row",
                 justifyContent: "space-between",
-                alignItems: "center",
+                alignItems: isMobile ? "stretch" : "center",
+                gap: isMobile ? "12px" : "0",
               }}
             >
               <div>
@@ -1736,6 +2154,7 @@ export default function App() {
                   boxShadow: "0 2px 4px rgba(37,99,235,0.2)",
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "center",
                   gap: "6px",
                 }}
               >
@@ -1746,7 +2165,9 @@ export default function App() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+                gridTemplateColumns: isMobile
+                  ? "1fr"
+                  : "repeat(auto-fill, minmax(320px, 1fr))",
                 gap: "16px",
               }}
             >
@@ -1953,6 +2374,40 @@ export default function App() {
         {activeTab === "tomorrow" && <TomorrowRentalList />}
       </div>
 
+      {/* ─── SP用 フローティング・アクション・ボタン (FAB) ─── */}
+      {isMobile && (
+        <button
+          onClick={() => {
+            const now = new Date();
+            setFormDataStart(getInitialDateTimeString(now, 9));
+            setFormDataEnd(getInitialDateTimeString(now, 18));
+            setIsModalOpen(true);
+            setRegisterStep(1);
+            setFormSizeType("限定なし");
+          }}
+          style={{
+            position: "fixed",
+            bottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
+            right: "16px",
+            width: "56px",
+            height: "56px",
+            borderRadius: "28px",
+            backgroundColor: "#1e3a8a",
+            color: "#fff",
+            border: "none",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            zIndex: 90,
+          }}
+          aria-label="新規予約"
+        >
+          <Plus size={28} />
+        </button>
+      )}
+
       {/* ─── 新規予約登録モーダル ─── */}
       {isModalOpen && (
         <div
@@ -1967,15 +2422,19 @@ export default function App() {
             alignItems: "center",
             justifyContent: "center",
             zIndex: 100,
+            padding: isMobile ? "12px" : "0",
           }}
         >
           <div
             style={{
               backgroundColor: "#fff",
-              width: "580px",
+              width: isMobile ? "100%" : "580px",
+              maxHeight: "90vh",
               borderRadius: "12px",
               boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
               overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
             }}
           >
             <div
@@ -2096,7 +2555,7 @@ export default function App() {
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
+                      gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
                       gap: "16px",
                     }}
                   >
@@ -2161,7 +2620,13 @@ export default function App() {
                     >
                       車両サイズ区分
                     </label>
-                    <div style={{ display: "flex", gap: "12px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: isMobile ? "column" : "row",
+                        gap: "12px",
+                      }}
+                    >
                       {(["限定なし", "軽自動車", "普通車"] as const).map(
                         (size) => (
                           <label
@@ -2337,7 +2802,7 @@ export default function App() {
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
+                      gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
                       gap: "16px",
                     }}
                   >
@@ -2395,7 +2860,7 @@ export default function App() {
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
+                      gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
                       gap: "16px",
                     }}
                   >
@@ -2546,15 +3011,19 @@ export default function App() {
             alignItems: "center",
             justifyContent: "center",
             zIndex: 110,
+            padding: isMobile ? "12px" : "0",
           }}
         >
           <div
             style={{
               backgroundColor: "#fff",
-              width: "520px",
+              width: isMobile ? "100%" : "520px",
+              maxHeight: "90vh",
               borderRadius: "12px",
               boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
               overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
             }}
           >
             <div
@@ -2585,7 +3054,7 @@ export default function App() {
               </button>
             </div>
 
-            <div style={{ padding: "24px" }}>
+            <div style={{ padding: "24px", overflowY: "auto" }}>
               {!isEditMode ? (
                 <div
                   style={{
@@ -2709,7 +3178,7 @@ export default function App() {
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
+                      gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
                       gap: "16px",
                     }}
                   >
@@ -2765,7 +3234,7 @@ export default function App() {
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
+                      gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
                       gap: "16px",
                     }}
                   >
@@ -2836,7 +3305,13 @@ export default function App() {
                     >
                       車両サイズ区分
                     </label>
-                    <div style={{ display: "flex", gap: "12px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: isMobile ? "column" : "row",
+                        gap: "12px",
+                      }}
+                    >
                       {(["限定なし", "軽自動車", "普通車"] as const).map(
                         (size) => (
                           <label
@@ -3025,15 +3500,19 @@ export default function App() {
             alignItems: "center",
             justifyContent: "center",
             zIndex: 120,
+            padding: isMobile ? "12px" : "0",
           }}
         >
           <div
             style={{
               backgroundColor: "#fff",
-              width: "500px",
+              width: isMobile ? "100%" : "500px",
+              maxHeight: "90vh",
               borderRadius: "12px",
               boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
               overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
             }}
           >
             <div
@@ -3070,12 +3549,13 @@ export default function App() {
                 display: "flex",
                 flexDirection: "column",
                 gap: "14px",
+                overflowY: "auto",
               }}
             >
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
+                  gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
                   gap: "12px",
                 }}
               >
@@ -3134,7 +3614,7 @@ export default function App() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
+                  gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
                   gap: "12px",
                 }}
               >
@@ -3197,7 +3677,7 @@ export default function App() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
+                  gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
                   gap: "12px",
                 }}
               >
@@ -3281,8 +3761,10 @@ export default function App() {
               <div
                 style={{
                   display: "flex",
+                  flexDirection: isMobile ? "column" : "row",
                   justifyContent: "space-between",
-                  alignItems: "center",
+                  alignItems: isMobile ? "flex-start" : "center",
+                  gap: isMobile ? "12px" : "0",
                   borderTop: "1px solid #f1f5f9",
                   paddingTop: "12px",
                   marginTop: "4px",
