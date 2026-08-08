@@ -992,8 +992,15 @@ export default function App() {
       setIsCarModalOpen(false);
       await fetchData();
     } catch (err) {
-      console.error("代車情報の保存に失敗しました:", err);
-      alert("保存に失敗しました。");
+    console.error("代車情報の保存に失敗しました:", {
+      message: err?.message,
+      details: err?.details,
+      hint: err?.hint,
+      code: err?.code,
+      fullError: err
+  });
+  
+  alert("保存に失敗しました。");
     }
   };
 
@@ -3691,7 +3698,7 @@ export default function App() {
                       marginBottom: "4px",
                     }}
                   >
-                    車検満了日
+                    車検満了日 *
                   </label>
                   <input
                     type="date"
@@ -3715,7 +3722,7 @@ export default function App() {
                       marginBottom: "4px",
                     }}
                   >
-                    最終オイル交換日
+                    最終オイル交換日 *
                   </label>
                   <input
                     type="date"
