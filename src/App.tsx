@@ -1975,8 +1975,8 @@ export default function App() {
                                 (e.currentTarget.style.backgroundColor = "#f1f5f9")
                               }
                               onMouseOut={(e) =>
-                                (e.currentTarget.style.backgroundColor =
-                                  "transparent")
+                              (e.currentTarget.style.backgroundColor =
+                                "transparent")
                               }
                             >
                               <span style={{ fontSize: "11px", color: "#64748b" }}>
@@ -2071,9 +2071,9 @@ export default function App() {
                                     検:{" "}
                                     {car.inspection_date
                                       ? format(
-                                          new Date(car.inspection_date),
-                                          "yy/MM/dd",
-                                        )
+                                        new Date(car.inspection_date),
+                                        "yy/MM/dd",
+                                      )
                                       : "未登録"}
                                   </span>
                                 </div>
@@ -2312,9 +2312,9 @@ export default function App() {
                         </span>{" "}
                         {car.last_oil_change_date
                           ? format(
-                              new Date(car.last_oil_change_date),
-                              "yyyy/MM/dd",
-                            )
+                            new Date(car.last_oil_change_date),
+                            "yyyy/MM/dd",
+                          )
                           : "未登録"}
                       </div>
                       <div style={{ gridColumn: "span 2", marginTop: "4px" }}>
@@ -2437,20 +2437,31 @@ export default function App() {
             top: 0,
             left: 0,
             width: "100vw",
-            height: "100vh",
+
+            // ★ iOS Safariの下部ツールバーを考慮
+            height: isMobile ? "100dvh" : "100vh",
+
             backgroundColor: "rgba(15,23,42,0.6)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 100,
-            padding: isMobile ? "12px" : "0",
+
+            // ★ SPでは下側の余白を大きくしてモーダルを上方向へ移動
+            padding: isMobile
+              ? "12px 12px calc(64px + env(safe-area-inset-bottom, 0px))"
+              : "0",
+
+            boxSizing: "border-box",
           }}
         >
           <div
             style={{
               backgroundColor: "#fff",
               width: isMobile ? "100%" : "580px",
-              maxHeight: "90vh",
+              maxHeight: isMobile
+                ? "calc(100dvh - 100px - env(safe-area-inset-bottom, 0px))"
+                : "90vh",
               borderRadius: "12px",
               boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
               overflow: "hidden",
@@ -2800,9 +2811,9 @@ export default function App() {
                             検:{" "}
                             {car.inspection_date
                               ? format(
-                                  new Date(car.inspection_date),
-                                  "yy/MM/dd",
-                                )
+                                new Date(car.inspection_date),
+                                "yy/MM/dd",
+                              )
                               : "未設定"}
                           </span>
                         </div>
@@ -2841,7 +2852,7 @@ export default function App() {
                       </label>
                       <input
                         type="text"
-                        placeholder="山田太郎"
+                        placeholder=""
                         value={formCustomerName}
                         onChange={(e) => setFormCustomerName(e.target.value)}
                         style={{
@@ -2866,7 +2877,7 @@ export default function App() {
                       </label>
                       <input
                         type="text"
-                        placeholder="営業 鈴木"
+                        placeholder=""
                         value={formStaffName}
                         onChange={(e) => setFormStaffName(e.target.value)}
                         style={{
@@ -2895,11 +2906,11 @@ export default function App() {
                           marginBottom: "4px",
                         }}
                       >
-                        預かり車種名 (任意)
+                        預かり車種名
                       </label>
                       <input
                         type="text"
-                        placeholder="プリウス"
+                        placeholder=""
                         value={formCarType}
                         onChange={(e) => setFormCarType(e.target.value)}
                         style={{
@@ -2935,8 +2946,8 @@ export default function App() {
                       >
                         <option value="車検">車検</option>
                         <option value="修理・整備">修理・整備</option>
-                        <option value="事故代車">事故代車</option>
-                        <option value="商談・試乗">商談・試乗</option>
+                        <option value="先取り">先取り</option>
+                        <option value="その他">その他</option>
                       </select>
                     </div>
                   </div>
@@ -2950,7 +2961,7 @@ export default function App() {
                         marginBottom: "4px",
                       }}
                     >
-                      備考 (任意)
+                      備考
                     </label>
                     <textarea
                       placeholder="特記事項があれば記入"
@@ -3026,20 +3037,27 @@ export default function App() {
             top: 0,
             left: 0,
             width: "100vw",
-            height: "100vh",
+            height: isMobile ? "100dvh" : "100vh",
             backgroundColor: "rgba(15,23,42,0.6)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 110,
-            padding: isMobile ? "12px" : "0",
+
+            padding: isMobile
+              ? "12px 12px calc(64px + env(safe-area-inset-bottom, 0px))"
+              : "0",
+
+            boxSizing: "border-box",
           }}
         >
           <div
             style={{
               backgroundColor: "#fff",
               width: isMobile ? "100%" : "520px",
-              maxHeight: "90vh",
+              maxHeight: isMobile
+                ? "calc(100dvh - 100px - env(safe-area-inset-bottom, 0px))"
+                : "90vh",
               borderRadius: "12px",
               boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
               overflow: "hidden",
@@ -3308,8 +3326,8 @@ export default function App() {
                       >
                         <option value="車検">車検</option>
                         <option value="修理・整備">修理・整備</option>
-                        <option value="事故代車">事故代車</option>
-                        <option value="商談・試乗">商談・試乗</option>
+                        <option value="先取り">先取り</option>
+                        <option value="その他">その他</option>
                       </select>
                     </div>
                   </div>
@@ -3515,20 +3533,26 @@ export default function App() {
             top: 0,
             left: 0,
             width: "100vw",
-            height: "100vh",
+            height: isMobile ? "100dvh" : "100vh",
             backgroundColor: "rgba(15,23,42,0.6)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 120,
-            padding: isMobile ? "12px" : "0",
+            padding: isMobile
+              ? "12px 12px calc(64px + env(safe-area-inset-bottom, 0px))"
+              : "0",
+
+            boxSizing: "border-box",
           }}
         >
           <div
             style={{
               backgroundColor: "#fff",
               width: isMobile ? "100%" : "500px",
-              maxHeight: "90vh",
+              maxHeight: isMobile
+                ? "calc(100dvh - 100px - env(safe-area-inset-bottom, 0px))"
+                : "90vh",
               borderRadius: "12px",
               boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
               overflow: "hidden",
@@ -3828,7 +3852,7 @@ export default function App() {
                     marginBottom: "4px",
                   }}
                 >
-                  備考 (任意)
+                  備考
                 </label>
                 <textarea
                   placeholder="車両に関する特記事項など"
