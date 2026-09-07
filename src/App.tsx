@@ -2570,10 +2570,19 @@ export default function App() {
 
             <div
               style={{
-                padding: "24px",
+                padding: isMobile ? "20px" : "24px",
                 minHeight: "280px",
                 maxHeight: "60vh",
+
+                // ★ 縦方向のみスクロール
                 overflowY: "auto",
+                overflowX: "hidden",
+
+                // ★ SPで左右方向のスワイプ・揺れを抑制
+                width: "100%",
+                boxSizing: "border-box",
+                touchAction: "pan-y",
+                overscrollBehaviorX: "none",
               }}
             >
               {registerStep === 1 && (
@@ -2582,6 +2591,10 @@ export default function App() {
                     display: "flex",
                     flexDirection: "column",
                     gap: "16px",
+                    width: "100%",
+                    maxWidth: "100%",
+                    boxSizing: "border-box",
+                    overflowX: "hidden",
                   }}
                 >
                   <div
@@ -2612,6 +2625,8 @@ export default function App() {
                           padding: "8px 12px",
                           border: "1px solid #cbd5e1",
                           borderRadius: "6px",
+                          boxSizing: "border-box",
+                          maxWidth: "100%",
                         }}
                       />
                     </div>
@@ -2636,6 +2651,8 @@ export default function App() {
                           padding: "8px 12px",
                           border: "1px solid #cbd5e1",
                           borderRadius: "6px",
+                          boxSizing: "border-box",
+                          maxWidth: "100%",
                         }}
                       />
                     </div>
