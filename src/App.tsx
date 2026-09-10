@@ -2642,7 +2642,6 @@ export default function App() {
                           boxSizing: "border-box",
                           border: "1px solid #cbd5e1",
                           borderRadius: "6px",
-                          padding: "0 12px",
                           overflow: "hidden",
                           backgroundColor: "#fff",
                         }}
@@ -2656,21 +2655,15 @@ export default function App() {
                             width: "100%",
                             minWidth: 0,
                             maxWidth: "100%",
-
                             boxSizing: "border-box",
-
-                            // ★ iOS Safari datetime-local対策
                             WebkitAppearance: "none",
                             appearance: "none",
-
                             padding: "10px 12px",
-
-                            border: "1px solid #cbd5e1",
-                            borderRadius: "6px",
-
+                            border: "none",
+                            outline: "none",
+                            backgroundColor: "transparent",
                             fontSize: "16px",
                             lineHeight: "1.25",
-
                             overflow: "hidden",
                           }}
                         />
@@ -2696,7 +2689,6 @@ export default function App() {
                       >
                         返却予定日時 *
                       </label>
-
                       <div
                         style={{
                           width: "100%",
@@ -2704,35 +2696,28 @@ export default function App() {
                           boxSizing: "border-box",
                           border: "1px solid #cbd5e1",
                           borderRadius: "6px",
-                          padding: "0 12px",
                           overflow: "hidden",
                           backgroundColor: "#fff",
                         }}
                       >
                         <input
                           type="datetime-local"
-                          value={formDataEnd}
-                          onChange={(e) => setFormDataEnd(e.target.value)}
+                          value={formDataStart}
+                          onChange={(e) => handleStartChange(e.target.value)}
                           style={{
                             display: "block",
                             width: "100%",
                             minWidth: 0,
                             maxWidth: "100%",
-
                             boxSizing: "border-box",
-
-                            // ★ iOS Safari datetime-local対策
                             WebkitAppearance: "none",
                             appearance: "none",
-
                             padding: "10px 12px",
-
-                            border: "1px solid #cbd5e1",
-                            borderRadius: "6px",
-
+                            border: "none",
+                            outline: "none",
+                            backgroundColor: "transparent",
                             fontSize: "16px",
                             lineHeight: "1.25",
-
                             overflow: "hidden",
                           }}
                         />
