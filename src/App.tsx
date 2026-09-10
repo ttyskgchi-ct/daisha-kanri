@@ -396,11 +396,32 @@ export default function App() {
   const handleStartChange = (newStartValue: string) => {
     setFormDataStart(newStartValue);
 
+    // 貸出開始日時を変更したら、返却予定日時を同日の18:00へ自動変更
     if (newStartValue) {
       const startDate = new Date(newStartValue);
       if (!isNaN(startDate.getTime())) {
         const autoEndStr = getInitialDateTimeString(startDate, 18);
         setFormDataEnd(autoEndStr);
+      }
+    }
+  };
+
+  const handleEndChange = (newEndValue: string) => {
+    setFormDataEnd(newEndValue);
+
+    // 返却予定日時が貸出開始日時より過去になった場合、
+    // 貸出開始日時を返却予定日時と同日の9:00へ自動変更
+    if (newEndValue && formDataStart) {
+      const endDate = new Date(newEndValue);
+      const currentStartDate = new Date(formDataStart);
+
+      if (
+        !isNaN(endDate.getTime()) &&
+        !isNaN(currentStartDate.getTime()) &&
+        endDate.getTime() < currentStartDate.getTime()
+      ) {
+        const autoStartStr = getInitialDateTimeString(endDate, 9);
+        setFormDataStart(autoStartStr);
       }
     }
   };
@@ -2750,8 +2771,8 @@ export default function App() {
                       >
                         <input
                           type="datetime-local"
-                          value={formDataStart}
-                          onChange={(e) => handleStartChange(e.target.value)}
+                          value={formDataEnd}
+                          onChange={(e) => handleEndChange(e.target.value)}
                           style={{
                             display: "block",
                             width: "100%",
