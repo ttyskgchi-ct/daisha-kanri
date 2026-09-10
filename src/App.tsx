@@ -2602,6 +2602,9 @@ export default function App() {
                       display: "grid",
                       gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
                       gap: "16px",
+                      minWidth: 0,
+                      width: "100%",
+                      boxSizing: "border-box",
                     }}
                   >
                     <div>
@@ -2622,11 +2625,12 @@ export default function App() {
                         onChange={(e) => handleStartChange(e.target.value)}
                         style={{
                           width: "100%",
+                          maxWidth: "100%",
+                          minWidth: 0,
                           padding: "8px 12px",
                           border: "1px solid #cbd5e1",
                           borderRadius: "6px",
                           boxSizing: "border-box",
-                          maxWidth: "100%",
                         }}
                       />
                     </div>
@@ -2648,11 +2652,12 @@ export default function App() {
                         onChange={(e) => setFormDataEnd(e.target.value)}
                         style={{
                           width: "100%",
+                          maxWidth: "100%",
+                          minWidth: 0,
                           padding: "8px 12px",
                           border: "1px solid #cbd5e1",
                           borderRadius: "6px",
                           boxSizing: "border-box",
-                          maxWidth: "100%",
                         }}
                       />
                     </div>
