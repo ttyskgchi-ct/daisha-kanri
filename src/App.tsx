@@ -2624,20 +2624,37 @@ export default function App() {
                       >
                         貸出開始日時 *
                       </label>
-                      <input
-                        type="datetime-local"
-                        value={formDataStart}
-                        onChange={(e) => handleStartChange(e.target.value)}
+                      <div
                         style={{
                           width: "100%",
-                          maxWidth: "100%",
                           minWidth: 0,
-                          padding: "8px 12px",
+                          boxSizing: "border-box",
                           border: "1px solid #cbd5e1",
                           borderRadius: "6px",
-                          boxSizing: "border-box",
+                          padding: "0 12px",
+                          overflow: "hidden",
+                          backgroundColor: "#fff",
                         }}
-                      />
+                      >
+                        <input
+                          type="datetime-local"
+                          value={formDataStart}
+                          onChange={(e) => handleStartChange(e.target.value)}
+                          style={{
+                            display: "block",
+                            width: "100%",
+                            minWidth: 0,
+                            maxWidth: "100%",
+                            padding: "8px 0",
+                            border: "none",
+                            outline: "none",
+                            boxSizing: "border-box",
+                            backgroundColor: "transparent",
+                            fontSize: "16px",
+                            WebkitMinLogicalWidth: 0,
+                          }}
+                        />
+                      </div>
                     </div>
                     <div
                       style={{
@@ -2656,20 +2673,38 @@ export default function App() {
                       >
                         返却予定日時 *
                       </label>
-                      <input
-                        type="datetime-local"
-                        value={formDataEnd}
-                        onChange={(e) => setFormDataEnd(e.target.value)}
+
+                      <div
                         style={{
                           width: "100%",
-                          maxWidth: "100%",
                           minWidth: 0,
-                          padding: "8px 12px",
+                          boxSizing: "border-box",
                           border: "1px solid #cbd5e1",
                           borderRadius: "6px",
-                          boxSizing: "border-box",
+                          padding: "0 12px",
+                          overflow: "hidden",
+                          backgroundColor: "#fff",
                         }}
-                      />
+                      >
+                        <input
+                          type="datetime-local"
+                          value={formDataEnd}
+                          onChange={(e) => setFormDataEnd(e.target.value)}
+                          style={{
+                            display: "block",
+                            width: "100%",
+                            minWidth: 0,
+                            maxWidth: "100%",
+                            padding: "8px 0",
+                            border: "none",
+                            outline: "none",
+                            boxSizing: "border-box",
+                            backgroundColor: "transparent",
+                            fontSize: "16px",
+                            WebkitMinLogicalWidth: 0,
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                   <div>
