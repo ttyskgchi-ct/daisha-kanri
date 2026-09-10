@@ -2607,7 +2607,12 @@ export default function App() {
                       boxSizing: "border-box",
                     }}
                   >
-                    <div>
+                    <div
+                      style={{
+                        minWidth: 0,
+                        width: "100%",
+                      }}
+                    >
                       <label
                         style={{
                           display: "block",
@@ -2634,7 +2639,12 @@ export default function App() {
                         }}
                       />
                     </div>
-                    <div>
+                    <div
+                      style={{
+                        minWidth: 0,
+                        width: "100%",
+                      }}
+                    >
                       <label
                         style={{
                           display: "block",
