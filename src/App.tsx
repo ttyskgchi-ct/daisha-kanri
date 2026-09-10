@@ -1268,6 +1268,22 @@ export default function App() {
     return carMatch || customerMatch;
   });
 
+  // ★ TOPページのカレンダー表示順専用
+  // 「N-BOXカスタム(社用車) (5568)」だけを常に最下部へ固定する。
+  // ※ filteredCars 自体は変更しないため、「代車一覧」や新規予約時の候補順には影響しない。
+  const calendarCars = [...filteredCars].sort((a, b) => {
+    const isTargetA =
+      a.car_name === "N-BOXカスタム(社用車)" &&
+      String(a.number_plate).includes("5568");
+    const isTargetB =
+      b.car_name === "N-BOXカスタム(社用車)" &&
+      String(b.number_plate).includes("5568");
+
+    if (isTargetA && !isTargetB) return 1;
+    if (!isTargetA && isTargetB) return -1;
+    return 0;
+  });
+
   const availableSafeCars = getAvailableSafeCars();
   const selectedCarInfo = selectedReservation
     ? cars.find((c) => c.id === selectedReservation.car_id)
@@ -1782,7 +1798,7 @@ export default function App() {
                       該当する車両がありません
                     </div>
                   ) : (
-                    filteredCars.map((car) => {
+                    calendarCars.map((car) => {
                       const carReservations = confirmedReservations.filter(
                         (r) => r.car_id === car.id,
                       );
@@ -2003,7 +2019,7 @@ export default function App() {
                           データを読み込み中...
                         </div>
                       ) : (
-                        filteredCars.map((car) => {
+                        calendarCars.map((car) => {
                           const carStyle = getCarStyles(car);
                           return (
                             <div
