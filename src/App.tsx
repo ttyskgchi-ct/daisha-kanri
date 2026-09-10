@@ -2600,17 +2600,28 @@ export default function App() {
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+
+                      gridTemplateColumns: isMobile
+                        ? "minmax(0, 1fr)"
+                        : "minmax(0, 1fr) minmax(0, 1fr)",
+
                       gap: "16px",
-                      minWidth: 0,
+
                       width: "100%",
+                      maxWidth: "100%",
+                      minWidth: 0,
+
                       boxSizing: "border-box",
+                      overflow: "hidden",
                     }}
                   >
                     <div
                       style={{
-                        minWidth: 0,
                         width: "100%",
+                        maxWidth: "100%",
+                        minWidth: 0,
+                        overflow: "hidden",
+                        boxSizing: "border-box",
                       }}
                     >
                       <label
@@ -2645,21 +2656,33 @@ export default function App() {
                             width: "100%",
                             minWidth: 0,
                             maxWidth: "100%",
-                            padding: "8px 0",
-                            border: "none",
-                            outline: "none",
+
                             boxSizing: "border-box",
-                            backgroundColor: "transparent",
+
+                            // ★ iOS Safari datetime-local対策
+                            WebkitAppearance: "none",
+                            appearance: "none",
+
+                            padding: "10px 12px",
+
+                            border: "1px solid #cbd5e1",
+                            borderRadius: "6px",
+
                             fontSize: "16px",
-                            WebkitMinLogicalWidth: 0,
+                            lineHeight: "1.25",
+
+                            overflow: "hidden",
                           }}
                         />
                       </div>
                     </div>
                     <div
                       style={{
-                        minWidth: 0,
                         width: "100%",
+                        maxWidth: "100%",
+                        minWidth: 0,
+                        overflow: "hidden",
+                        boxSizing: "border-box",
                       }}
                     >
                       <label
@@ -2695,13 +2718,22 @@ export default function App() {
                             width: "100%",
                             minWidth: 0,
                             maxWidth: "100%",
-                            padding: "8px 0",
-                            border: "none",
-                            outline: "none",
+
                             boxSizing: "border-box",
-                            backgroundColor: "transparent",
+
+                            // ★ iOS Safari datetime-local対策
+                            WebkitAppearance: "none",
+                            appearance: "none",
+
+                            padding: "10px 12px",
+
+                            border: "1px solid #cbd5e1",
+                            borderRadius: "6px",
+
                             fontSize: "16px",
-                            WebkitMinLogicalWidth: 0,
+                            lineHeight: "1.25",
+
+                            overflow: "hidden",
                           }}
                         />
                       </div>
