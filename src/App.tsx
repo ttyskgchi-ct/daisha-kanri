@@ -366,6 +366,10 @@ export default function App() {
   // ★ カレンダー全体参照用のRef（グローバルマウス位置計算用）
   const calendarGridRef = useRef<HTMLDivElement | null>(null);
 
+  // ★ カレンダー縦スクロール位置保持用
+  const calendarScrollRef = useRef<HTMLDivElement | null>(null);
+  const pendingCalendarScrollTopRef = useRef<number | null>(null);
+
   // 日時フォーマット用のヘルパー関数
   const getInitialDateTimeString = (baseDate: Date, hour: number = 9) => {
     const d = new Date(baseDate);
@@ -493,6 +497,23 @@ export default function App() {
   useEffect(() => {
     fetchData();
   }, [currentStartDate]);
+
+  // ★ データ更新完了後、ドラッグ前のカレンダー縦スクロール位置へ戻す
+  useEffect(() => {
+    if (!loading && pendingCalendarScrollTopRef.current !== null) {
+      const savedScrollTop = pendingCalendarScrollTopRef.current;
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (calendarScrollRef.current) {
+            calendarScrollRef.current.scrollTop = savedScrollTop;
+          }
+
+          pendingCalendarScrollTopRef.current = null;
+        });
+      });
+    }
+  }, [loading]);
 
   const pendingReservations = reservations.filter(
     (r) => r.status === "保留" || !r.car_id,
@@ -664,6 +685,12 @@ export default function App() {
     }
 
     try {
+      // ★ データ更新前のカレンダー縦スクロール位置を保存
+      if (calendarScrollRef.current) {
+        pendingCalendarScrollTopRef.current =
+          calendarScrollRef.current.scrollTop;
+      }
+
       const { error } = await supabase
         .from("daisha_reservations")
         .update({ car_id: carId, status: "確定" })
@@ -671,6 +698,8 @@ export default function App() {
       if (error) throw error;
       await fetchData();
     } catch (err) {
+      // エラー時はスクロール復元予約を解除
+      pendingCalendarScrollTopRef.current = null;
       console.error("予約の移動に失敗しました:", err);
     }
   };
@@ -2013,7 +2042,10 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div style={{ flex: 1, overflowY: "auto" }}>
+                    <div
+                      ref={calendarScrollRef}
+                      style={{ flex: 1, overflowY: "auto" }}
+                    >
                       {loading ? (
                         <div style={{ padding: "40px", textAlign: "center" }}>
                           データを読み込み中...
