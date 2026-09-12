@@ -604,14 +604,24 @@ export default function App() {
               );
             } else {
               try {
+                // ★ 予約期間の伸縮後も、更新前のカレンダー縦スクロール位置を保持する
+                if (calendarScrollRef.current) {
+                  pendingCalendarScrollTopRef.current =
+                    calendarScrollRef.current.scrollTop;
+                }
+
                 const { error } = await supabase
                   .from("daisha_reservations")
                   .update({ end_at: newEnd })
                   .eq("id", state.resizingResId);
 
                 if (error) throw error;
+
                 await state.fetchData();
               } catch (err) {
+                // 保存に失敗した場合は、次回更新時に誤って古い位置へ戻らないよう解除
+                pendingCalendarScrollTopRef.current = null;
+
                 console.error("予約期間の変更に失敗しました:", err);
                 alert("期間の保存に失敗しました。");
               }
@@ -811,6 +821,39 @@ export default function App() {
     return { backgroundColor, color: textColor };
   };
 
+  // ─── カレンダー空白セルから新規予約登録を開始 ───
+  // 既存の新規予約登録モーダルをそのまま使用し、
+  // クリックした車両と日付だけを初期値として仮選択する。
+  const handleCalendarEmptyCellClick = (car: DaishaMaster, day: Date) => {
+    // ドラッグ・リサイズ操作直後の誤クリックを防止
+    if (isDraggingOrResizing.current) return;
+
+    const dayStart = startOfDay(day);
+    const dayEnd = endOfDay(day);
+
+    // クリックした車両・日付に確定予約がある場合は新規登録を開かない
+    const hasReservationOnDay = confirmedReservations.some((res) => {
+      if (res.car_id !== car.id) return false;
+
+      const resStart = parseISO(res.start_at);
+      const resEnd = parseISO(res.end_at);
+
+      return (
+        !isAfter(resStart, dayEnd) &&
+        !isBefore(resEnd, dayStart)
+      );
+    });
+
+    if (hasReservationOnDay) return;
+
+    setFormDataStart(getInitialDateTimeString(day, 9));
+    setFormDataEnd(getInitialDateTimeString(day, 18));
+    setFormSizeType("限定なし");
+    setFormSelectedCarId(car.id);
+    setRegisterStep(1);
+    setIsModalOpen(true);
+  };
+
   const getAvailableSafeCars = () => {
     const start = new Date(formDataStart);
     const end = new Date(formDataEnd);
@@ -820,6 +863,7 @@ export default function App() {
         return false;
       return car.status === "貸出可";
     });
+
     available = available.filter((car) => {
       const hasConflict = confirmedReservations.some((res) => {
         if (res.car_id !== car.id) return false;
@@ -829,21 +873,103 @@ export default function App() {
       });
       return !hasConflict;
     });
+
+    // ★ 安全スコア順
+    // 車検満了日までの余裕を60点、最終オイル交換日の新しさを40点として
+    // 合計100点で評価する。
+    //
+    // ・車検：予約開始日時から満了日まで730日以上で満点
+    // ・オイル：予約開始日時時点で交換から0日なら満点、
+    //           180日以上経過していれば0点
+    // ・未登録日は安全側に倒して0点として扱う
+    const getSafetyScore = (car: DaishaMaster) => {
+      const inspectionDate = car.inspection_date
+        ? new Date(car.inspection_date)
+        : null;
+      const oilDate = car.last_oil_change_date
+        ? new Date(car.last_oil_change_date)
+        : null;
+
+      const daysUntilInspection = inspectionDate
+        ? differenceInDays(inspectionDate, start)
+        : 0;
+
+      const daysSinceOilChange = oilDate
+        ? differenceInDays(start, oilDate)
+        : 180;
+
+      const inspectionScore =
+        (Math.min(Math.max(daysUntilInspection, 0), 730) / 730) * 60;
+
+      const oilScore =
+        (Math.min(Math.max(180 - Math.max(daysSinceOilChange, 0), 0), 180) /
+          180) *
+        40;
+
+      return inspectionScore + oilScore;
+    };
+
     return available.sort((a, b) => {
-      const dateA = a.inspection_date
+      const scoreDiff = getSafetyScore(b) - getSafetyScore(a);
+      if (scoreDiff !== 0) return scoreDiff;
+
+      // 同点時は、車検満了日が遠い車両を優先
+      const inspectionA = a.inspection_date
         ? new Date(a.inspection_date).getTime()
         : 0;
-      const dateB = b.inspection_date
+      const inspectionB = b.inspection_date
         ? new Date(b.inspection_date).getTime()
         : 0;
-      return dateB - dateA;
+      if (inspectionB !== inspectionA) return inspectionB - inspectionA;
+
+      // さらに同点なら、オイル交換日が新しい車両を優先
+      const oilA = a.last_oil_change_date
+        ? new Date(a.last_oil_change_date).getTime()
+        : 0;
+      const oilB = b.last_oil_change_date
+        ? new Date(b.last_oil_change_date).getTime()
+        : 0;
+      if (oilB !== oilA) return oilB - oilA;
+
+      // 完全同点時のみ車名順
+      return a.car_name.localeCompare(b.car_name, "ja");
     });
+  };
+
+  const handleFormSizeTypeChange = (
+    newSizeType: "限定なし" | "軽自動車" | "普通車",
+  ) => {
+    setFormSizeType(newSizeType);
+
+    // ★ カレンダーから仮選択された車両などが、
+    //    新しく指定した車両サイズ区分と一致しない場合は警告する。
+    //    仮選択自体は解除せず、Step2で別の車両へ変更できる状態を維持する。
+    if (newSizeType === "限定なし" || !formSelectedCarId) return;
+
+    const selectedCar = cars.find((car) => car.id === formSelectedCarId);
+    if (selectedCar && selectedCar.size_type !== newSizeType) {
+      alert(
+        "指定している代車と車両区分が違うため登録ができません。\nStep2で指定した車両区分に合う代車を選択してください。",
+      );
+    }
   };
 
   const handleRegisterSubmit = async () => {
     if (!formCustomerName || !formStaffName) {
       alert("顧客名と自社担当者は必須入力です。");
       return;
+    }
+
+    // ★ 選択中の代車と車両サイズ区分の最終整合性チェック
+    if (formSelectedCarId && formSizeType !== "限定なし") {
+      const selectedCar = cars.find((car) => car.id === formSelectedCarId);
+
+      if (selectedCar && selectedCar.size_type !== formSizeType) {
+        alert(
+          "指定している代車と車両区分が違うため登録ができません。\nStep2で指定した車両区分に合う代車を選択してください。",
+        );
+        return;
+      }
     }
 
     try {
@@ -2158,9 +2284,12 @@ export default function App() {
                                 onDragOver={handleDragOver}
                                 onDrop={(e) => handleGridCellDrop(e, car.id)}
                               >
-                                {daysArray.map((_, idx) => (
+                                {daysArray.map((day, idx) => (
                                   <div
                                     key={idx}
+                                    onClick={() =>
+                                      handleCalendarEmptyCellClick(car, day)
+                                    }
                                     style={{
                                       flex: 1,
                                       borderRight:
@@ -2841,7 +2970,7 @@ export default function App() {
                               type="radio"
                               name="size_type"
                               checked={formSizeType === size}
-                              onChange={() => setFormSizeType(size)}
+                              onChange={() => handleFormSizeTypeChange(size)}
                               style={{ accentColor: "#1e3a8a" }}
                             />
                             {size}
