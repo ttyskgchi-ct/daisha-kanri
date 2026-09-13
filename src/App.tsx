@@ -1460,6 +1460,11 @@ export default function App() {
     return 0;
   });
 
+  // ─── 練習環境判定 ───
+  // Vercel の練習用プロジェクトで VITE_APP_ENV=training を設定した場合のみ
+  // 画面上部に練習環境の注意表示を出す。
+  const isTraining = import.meta.env.VITE_APP_ENV === "training";
+
   const availableSafeCars = getAvailableSafeCars();
   const selectedCarInfo = selectedReservation
     ? cars.find((c) => c.id === selectedReservation.car_id)
@@ -1475,8 +1480,36 @@ export default function App() {
         fontFamily:
           '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
         overflow: "hidden",
+        paddingTop: isTraining ? "40px" : "0",
+        boxSizing: "border-box",
       }}
     >
+      {isTraining && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "40px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "0 12px",
+            boxSizing: "border-box",
+            backgroundColor: "#fef3c7",
+            color: "#92400e",
+            borderBottom: "1px solid #f59e0b",
+            fontWeight: "bold",
+            fontSize: isMobile ? "12px" : "14px",
+            textAlign: "center",
+            zIndex: 9999,
+          }}
+        >
+          【練習環境】このページの操作は本番には反映されません
+        </div>
+      )}
+
       {/* ─── サイドメニュー ─── */}
       <aside
         style={{
