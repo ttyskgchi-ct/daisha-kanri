@@ -15,13 +15,21 @@ export interface TomorrowRentalItem {
   parking_label: string;
 }
 
-const normalizePlateNumber = (plate: string): string => {
-  if (!plate) return "";
-  return plate
-    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) =>
-      String.fromCharCode(s.charCodeAt(0) - 0xfee0),
-    )
-    .replace(/[^0-9a-zA-Z]/g, "");
+// 全角英数字を半角へ統一し、末尾のナンバープレート番号（1〜4桁）だけを抽出する。
+// 例:
+// 「ライズ6091」     -> "6091"
+// 「ライズ６０９１」 -> "6091"
+// 「スペーシア631」   -> "631"
+// 「マツダ3」         -> "3"
+const extractPlateNumber = (value: string): string => {
+  if (!value) return "";
+
+  const normalized = value.replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) =>
+    String.fromCharCode(s.charCodeAt(0) - 0xfee0),
+  );
+
+  const match = normalized.match(/(\d{1,4})\s*$/);
+  return match ? match[1] : "";
 };
 
 export default function TomorrowRentalList() {
@@ -86,15 +94,20 @@ export default function TomorrowRentalList() {
       }
 
       // 4. 車両情報と駐車位置をマッチング
+      //    車名ではなく、末尾のナンバープレート番号を抽出して完全一致で照合する。
+      //    全角数字・半角数字の入力揺れには対応する。
       const result: TomorrowRentalItem[] = (carData || []).map((car) => {
-        const normalizedCarPlate = normalizePlateNumber(car.number_plate);
+        const carPlateNumber = extractPlateNumber(car.number_plate);
+
         const matchedSlot = (slotData || []).find((slot) => {
           if (!slot.car_name) return false;
-          const normalizedSlotPlate = normalizePlateNumber(slot.car_name);
+
+          const slotPlateNumber = extractPlateNumber(slot.car_name);
+
           return (
-            normalizedSlotPlate.length > 0 &&
-            (normalizedCarPlate.includes(normalizedSlotPlate) ||
-              normalizedSlotPlate.includes(normalizedCarPlate))
+            carPlateNumber.length > 0 &&
+            slotPlateNumber.length > 0 &&
+            carPlateNumber === slotPlateNumber
           );
         });
 
@@ -208,92 +221,92 @@ export default function TomorrowRentalList() {
           </div>
         ) : (
           <div style={{ maxWidth: "600px", width: "100%" }}>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              marginTop: "12px",
-              backgroundColor: "#fff",
-            }}
-          >
-            <thead>
-              <tr
-                style={{
-                  backgroundColor: "#f1f5f9",
-                  borderBottom: "2px solid #cbd5e1",
-                }}
-              >
-                <th
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                marginTop: "12px",
+                backgroundColor: "#fff",
+              }}
+            >
+              <thead>
+                <tr
                   style={{
-                    padding: "12px",
-                    textAlign: "left",
-                    fontSize: "14px",
-                    border: "1px solid #cbd5e1",
+                    backgroundColor: "#f1f5f9",
+                    borderBottom: "2px solid #cbd5e1",
                   }}
                 >
-                  車両情報（車名）
-                </th>
-                <th
-                  style={{
-                    padding: "12px",
-                    textAlign: "left",
-                    fontSize: "14px",
-                    border: "1px solid #cbd5e1",
-                  }}
-                >
-                  ナンバープレート
-                </th>
-                <th
-                  style={{
-                    padding: "12px",
-                    textAlign: "center",
-                    fontSize: "14px",
-                    border: "1px solid #cbd5e1",
-                    width: "150px",
-                  }}
-                >
-                  駐車位置
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.id} style={{ borderBottom: "1px solid #cbd5e1" }}>
-                  <td
+                  <th
                     style={{
                       padding: "12px",
-                      fontSize: "15px",
-                      fontWeight: "bold",
+                      textAlign: "left",
+                      fontSize: "14px",
                       border: "1px solid #cbd5e1",
                     }}
                   >
-                    {item.car_name}
-                  </td>
-                  <td
+                    車両情報（車名）
+                  </th>
+                  <th
                     style={{
                       padding: "12px",
-                      fontSize: "15px",
+                      textAlign: "left",
+                      fontSize: "14px",
                       border: "1px solid #cbd5e1",
                     }}
                   >
-                    {item.number_plate}
-                  </td>
-                  <td
+                    ナンバープレート
+                  </th>
+                  <th
                     style={{
                       padding: "12px",
-                      fontSize: "16px",
-                      fontWeight: "bold",
                       textAlign: "center",
-                      backgroundColor: "#f8fafc",
+                      fontSize: "14px",
                       border: "1px solid #cbd5e1",
+                      width: "150px",
                     }}
                   >
-                    {item.parking_label}
-                  </td>
+                    駐車位置
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <tr key={item.id} style={{ borderBottom: "1px solid #cbd5e1" }}>
+                    <td
+                      style={{
+                        padding: "12px",
+                        fontSize: "15px",
+                        fontWeight: "bold",
+                        border: "1px solid #cbd5e1",
+                      }}
+                    >
+                      {item.car_name}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        fontSize: "15px",
+                        border: "1px solid #cbd5e1",
+                      }}
+                    >
+                      {item.number_plate}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        textAlign: "center",
+                        backgroundColor: "#f8fafc",
+                        border: "1px solid #cbd5e1",
+                      }}
+                    >
+                      {item.parking_label}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
