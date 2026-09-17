@@ -1,6 +1,6 @@
 // TomorrowRentalList.tsx
 import { useState, useEffect } from "react";
-import { format, addDays } from "date-fns";
+import { format, addDays, parseISO } from "date-fns";
 import { ja } from "date-fns/locale";
 import { createClient } from "@supabase/supabase-js";
 
@@ -13,6 +13,8 @@ export interface TomorrowRentalItem {
   car_name: string;
   number_plate: string;
   parking_label: string;
+  rental_time: string;
+  customer_name: string;
 }
 
 // 全角英数字を半角へ統一し、末尾のナンバープレート番号（1〜4桁）だけを抽出する。
@@ -56,9 +58,10 @@ export default function TomorrowRentalList() {
       const targetEnd = `${selectedDate}T23:59:59.999Z`;
 
       // 1. 指定日の確定予約を取得
+      //    貸出開始時間・顧客名も予約データから取得する
       const { data: resData, error: resError } = await supabase
         .from("daisha_reservations")
-        .select("car_id")
+        .select("id, car_id, start_at, customer_name")
         .eq("status", "確定")
         .not("car_id", "is", null)
         .gte("start_at", targetStart)
@@ -93,31 +96,43 @@ export default function TomorrowRentalList() {
         console.warn("parking_slotsの取得に失敗しました:", slotError);
       }
 
-      // 4. 車両情報と駐車位置をマッチング
+      // 4. 予約情報を基準に、車両情報・駐車位置・貸出時間・顧客名をまとめる
       //    車名ではなく、末尾のナンバープレート番号を抽出して完全一致で照合する。
       //    全角数字・半角数字の入力揺れには対応する。
-      const result: TomorrowRentalItem[] = (carData || []).map((car) => {
-        const carPlateNumber = extractPlateNumber(car.number_plate);
-
-        const matchedSlot = (slotData || []).find((slot) => {
-          if (!slot.car_name) return false;
-
-          const slotPlateNumber = extractPlateNumber(slot.car_name);
-
-          return (
-            carPlateNumber.length > 0 &&
-            slotPlateNumber.length > 0 &&
-            carPlateNumber === slotPlateNumber
+      const result: TomorrowRentalItem[] = (resData || [])
+        .map((reservation) => {
+          const car = (carData || []).find(
+            (carItem) => carItem.id === reservation.car_id,
           );
-        });
 
-        return {
-          id: car.id,
-          car_name: car.car_name,
-          number_plate: car.number_plate,
-          parking_label: matchedSlot ? matchedSlot.label : "未設定",
-        };
-      });
+          if (!car) return null;
+
+          const carPlateNumber = extractPlateNumber(car.number_plate);
+
+          const matchedSlot = (slotData || []).find((slot) => {
+            if (!slot.car_name) return false;
+
+            const slotPlateNumber = extractPlateNumber(slot.car_name);
+
+            return (
+              carPlateNumber.length > 0 &&
+              slotPlateNumber.length > 0 &&
+              carPlateNumber === slotPlateNumber
+            );
+          });
+
+          return {
+            id: reservation.id,
+            car_name: car.car_name,
+            number_plate: car.number_plate,
+            parking_label: matchedSlot ? matchedSlot.label : "未設定",
+            rental_time: reservation.start_at
+              ? format(parseISO(reservation.start_at), "HH:mm")
+              : "未設定",
+            customer_name: reservation.customer_name || "未設定",
+          };
+        })
+        .filter((item): item is TomorrowRentalItem => item !== null);
 
       setItems(result);
     } catch (err) {
@@ -220,7 +235,7 @@ export default function TomorrowRentalList() {
             指定された日の貸出予定車両はありません。
           </div>
         ) : (
-          <div style={{ maxWidth: "600px", width: "100%" }}>
+          <div style={{ maxWidth: "900px", width: "100%" }}>
             <table
               style={{
                 width: "100%",
@@ -267,6 +282,28 @@ export default function TomorrowRentalList() {
                   >
                     駐車位置
                   </th>
+                  <th
+                    style={{
+                      padding: "12px",
+                      textAlign: "center",
+                      fontSize: "14px",
+                      border: "1px solid #cbd5e1",
+                      width: "110px",
+                    }}
+                  >
+                    貸出時間
+                  </th>
+                  <th
+                    style={{
+                      padding: "12px",
+                      textAlign: "left",
+                      fontSize: "14px",
+                      border: "1px solid #cbd5e1",
+                      minWidth: "140px",
+                    }}
+                  >
+                    顧客名
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -302,6 +339,26 @@ export default function TomorrowRentalList() {
                       }}
                     >
                       {item.parking_label}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        fontSize: "15px",
+                        fontWeight: "bold",
+                        textAlign: "center",
+                        border: "1px solid #cbd5e1",
+                      }}
+                    >
+                      {item.rental_time}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        fontSize: "15px",
+                        border: "1px solid #cbd5e1",
+                      }}
+                    >
+                      {item.customer_name}
                     </td>
                   </tr>
                 ))}
