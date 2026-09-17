@@ -358,7 +358,7 @@ export default function TomorrowRentalList() {
                         border: "1px solid #cbd5e1",
                       }}
                     >
-                      {item.customer_name}
+                      {item.customer_name} 様
                     </td>
                   </tr>
                 ))}
