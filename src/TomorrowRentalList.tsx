@@ -15,6 +15,10 @@ export interface TomorrowRentalItem {
   parking_label: string;
   rental_time: string;
   customer_name: string;
+  car_type: string;
+  purpose: string;
+  staff_name: string;
+  note: string;
 }
 
 // 全角英数字を半角へ統一し、末尾のナンバープレート番号（1〜4桁）だけを抽出する。
@@ -58,10 +62,12 @@ export default function TomorrowRentalList() {
       const targetEnd = `${selectedDate}T23:59:59.999Z`;
 
       // 1. 指定日の確定予約を取得
-      //    貸出開始時間・顧客名も予約データから取得する
+      //    明日貸出予定で表示する予約情報をまとめて取得する
       const { data: resData, error: resError } = await supabase
         .from("daisha_reservations")
-        .select("id, car_id, start_at, customer_name")
+        .select(
+          "id, car_id, start_at, customer_name, car_type, purpose, staff_name, note",
+        )
         .eq("status", "確定")
         .not("car_id", "is", null)
         .gte("start_at", targetStart)
@@ -96,8 +102,8 @@ export default function TomorrowRentalList() {
         console.warn("parking_slotsの取得に失敗しました:", slotError);
       }
 
-      // 4. 予約情報を基準に、車両情報・駐車位置・貸出時間・顧客名をまとめる
-      //    車名ではなく、末尾のナンバープレート番号を抽出して完全一致で照合する。
+      // 4. 予約情報を基準に、車両情報・駐車位置・予約詳細をまとめる
+      //    駐車位置は車名ではなく、末尾のナンバープレート番号を抽出して完全一致で照合する。
       //    全角数字・半角数字の入力揺れには対応する。
       const result: TomorrowRentalItem[] = (resData || [])
         .map((reservation) => {
@@ -130,6 +136,10 @@ export default function TomorrowRentalList() {
               ? format(parseISO(reservation.start_at), "HH:mm")
               : "未設定",
             customer_name: reservation.customer_name || "未設定",
+            car_type: reservation.car_type || "未入力",
+            purpose: reservation.purpose || "未入力",
+            staff_name: reservation.staff_name || "未入力",
+            note: reservation.note || "",
           };
         })
         .filter((item): item is TomorrowRentalItem => item !== null);
@@ -154,6 +164,13 @@ export default function TomorrowRentalList() {
           .no-print { display: none !important; }
           body { background-color: #fff !important; }
           .print-area { padding: 0 !important; }
+          .rental-list-table {
+            font-size: 10px !important;
+          }
+          .rental-list-table th,
+          .rental-list-table td {
+            padding: 6px !important;
+          }
         }
       `}</style>
 
@@ -235,10 +252,12 @@ export default function TomorrowRentalList() {
             指定された日の貸出予定車両はありません。
           </div>
         ) : (
-          <div style={{ maxWidth: "900px", width: "100%" }}>
+          <div style={{ width: "100%", overflowX: "auto" }}>
             <table
+              className="rental-list-table"
               style={{
                 width: "100%",
+                minWidth: "1250px",
                 borderCollapse: "collapse",
                 marginTop: "12px",
                 backgroundColor: "#fff",
@@ -251,59 +270,33 @@ export default function TomorrowRentalList() {
                     borderBottom: "2px solid #cbd5e1",
                   }}
                 >
-                  <th
-                    style={{
-                      padding: "12px",
-                      textAlign: "left",
-                      fontSize: "14px",
-                      border: "1px solid #cbd5e1",
-                    }}
-                  >
-                    車両情報（車名）
-                  </th>
-                  <th
-                    style={{
-                      padding: "12px",
-                      textAlign: "left",
-                      fontSize: "14px",
-                      border: "1px solid #cbd5e1",
-                    }}
-                  >
-                    ナンバープレート
-                  </th>
-                  <th
-                    style={{
-                      padding: "12px",
-                      textAlign: "center",
-                      fontSize: "14px",
-                      border: "1px solid #cbd5e1",
-                      width: "150px",
-                    }}
-                  >
-                    駐車位置
-                  </th>
-                  <th
-                    style={{
-                      padding: "12px",
-                      textAlign: "center",
-                      fontSize: "14px",
-                      border: "1px solid #cbd5e1",
-                      width: "110px",
-                    }}
-                  >
-                    貸出時間
-                  </th>
-                  <th
-                    style={{
-                      padding: "12px",
-                      textAlign: "left",
-                      fontSize: "14px",
-                      border: "1px solid #cbd5e1",
-                      minWidth: "140px",
-                    }}
-                  >
-                    顧客名
-                  </th>
+                  {[
+                    "車両情報（車名）",
+                    "ナンバープレート",
+                    "駐車位置",
+                    "貸出時間",
+                    "顧客名",
+                    "預かり車種名",
+                    "要件/目的",
+                    "自社担当者",
+                    "備考",
+                  ].map((label) => (
+                    <th
+                      key={label}
+                      style={{
+                        padding: "10px",
+                        textAlign:
+                          label === "駐車位置" || label === "貸出時間"
+                            ? "center"
+                            : "left",
+                        fontSize: "13px",
+                        border: "1px solid #cbd5e1",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {label}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -311,54 +304,100 @@ export default function TomorrowRentalList() {
                   <tr key={item.id} style={{ borderBottom: "1px solid #cbd5e1" }}>
                     <td
                       style={{
-                        padding: "12px",
-                        fontSize: "15px",
+                        padding: "10px",
+                        fontSize: "14px",
                         fontWeight: "bold",
                         border: "1px solid #cbd5e1",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {item.car_name}
                     </td>
                     <td
                       style={{
-                        padding: "12px",
-                        fontSize: "15px",
+                        padding: "10px",
+                        fontSize: "14px",
                         border: "1px solid #cbd5e1",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {item.number_plate}
                     </td>
                     <td
                       style={{
-                        padding: "12px",
-                        fontSize: "16px",
+                        padding: "10px",
+                        fontSize: "15px",
                         fontWeight: "bold",
                         textAlign: "center",
                         backgroundColor: "#f8fafc",
                         border: "1px solid #cbd5e1",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {item.parking_label}
                     </td>
                     <td
                       style={{
-                        padding: "12px",
-                        fontSize: "15px",
+                        padding: "10px",
+                        fontSize: "14px",
                         fontWeight: "bold",
                         textAlign: "center",
                         border: "1px solid #cbd5e1",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {item.rental_time}
                     </td>
                     <td
                       style={{
-                        padding: "12px",
-                        fontSize: "15px",
+                        padding: "10px",
+                        fontSize: "14px",
                         border: "1px solid #cbd5e1",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {item.customer_name} 様
+                    </td>
+                    <td
+                      style={{
+                        padding: "10px",
+                        fontSize: "14px",
+                        border: "1px solid #cbd5e1",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.car_type}
+                    </td>
+                    <td
+                      style={{
+                        padding: "10px",
+                        fontSize: "14px",
+                        border: "1px solid #cbd5e1",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.purpose}
+                    </td>
+                    <td
+                      style={{
+                        padding: "10px",
+                        fontSize: "14px",
+                        border: "1px solid #cbd5e1",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.staff_name}
+                    </td>
+                    <td
+                      style={{
+                        padding: "10px",
+                        fontSize: "14px",
+                        border: "1px solid #cbd5e1",
+                        minWidth: "180px",
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {item.note || "—"}
                     </td>
                   </tr>
                 ))}
