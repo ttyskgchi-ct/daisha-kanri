@@ -21,12 +21,8 @@ export interface TomorrowRentalItem {
   note: string;
 }
 
-// 全角英数字を半角へ統一し、末尾のナンバープレート番号（1〜4桁）だけを抽出する。
-// 例:
-// 「ライズ6091」     -> "6091"
-// 「ライズ６０９１」 -> "6091"
-// 「スペーシア631」   -> "631"
-// 「マツダ3」         -> "3"
+// 全角英数字を半角へ統一し、車両マスター側のナンバープレート番号を抽出する。
+// 車両マスターの number_plate は末尾の1〜4桁を使用する。
 const extractPlateNumber = (value: string): string => {
   if (!value) return "";
 
@@ -36,6 +32,24 @@ const extractPlateNumber = (value: string): string => {
 
   const match = normalized.match(/(\d{1,4})\s*$/);
   return match ? match[1] : "";
+};
+
+// 駐車場管理側の car_name については、ナンバーの後ろに備考が入力される場合があるため、
+// 文字列内に含まれる「1〜4桁の独立した数字列」をすべて候補として取得する。
+// 例:
+// 「ライズ7218」                                      -> ["7218"]
+// 「ライズ７２１８」                                  -> ["7218"]
+// 「ライズ7218 ※マット装着&出すとき保険かける！」   -> ["7218"]
+const extractPlateCandidates = (value: string): string[] => {
+  if (!value) return [];
+
+  const normalized = value.replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) =>
+    String.fromCharCode(s.charCodeAt(0) - 0xfee0),
+  );
+
+  return (normalized.match(/\d+/g) || []).filter(
+    (digits) => digits.length >= 1 && digits.length <= 4,
+  );
 };
 
 export default function TomorrowRentalList() {
@@ -103,8 +117,9 @@ export default function TomorrowRentalList() {
       }
 
       // 4. 予約情報を基準に、車両情報・駐車位置・予約詳細をまとめる
-      //    駐車位置は車名ではなく、末尾のナンバープレート番号を抽出して完全一致で照合する。
-      //    全角数字・半角数字の入力揺れには対応する。
+      //    駐車位置は車名ではなくナンバープレート番号で照合する。
+      //    駐車場管理側の車名欄で、ナンバーの後ろに備考が付いていても照合できる。
+      //    全角数字・半角数字の入力揺れにも対応する。
       const result: TomorrowRentalItem[] = (resData || [])
         .map((reservation) => {
           const car = (carData || []).find(
@@ -118,12 +133,11 @@ export default function TomorrowRentalList() {
           const matchedSlot = (slotData || []).find((slot) => {
             if (!slot.car_name) return false;
 
-            const slotPlateNumber = extractPlateNumber(slot.car_name);
+            const slotPlateCandidates = extractPlateCandidates(slot.car_name);
 
             return (
               carPlateNumber.length > 0 &&
-              slotPlateNumber.length > 0 &&
-              carPlateNumber === slotPlateNumber
+              slotPlateCandidates.includes(carPlateNumber)
             );
           });
 
