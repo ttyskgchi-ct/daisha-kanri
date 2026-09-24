@@ -320,6 +320,14 @@ export default function App() {
   const [loading, setLoading] = useState<boolean>(true);
   const [currentStartDate, setCurrentStartDate] = useState<Date>(new Date());
   const [filterText, setFilterText] = useState("");
+
+  // ★ お客様名検索ナビゲーション
+  // 検索結果が複数ある場合に、VS Codeの検索のように前後の予約へ移動する。
+  const [searchMatchIndex, setSearchMatchIndex] = useState<number>(0);
+  const [highlightedReservationId, setHighlightedReservationId] = useState<
+    string | null
+  >(null);
+  const searchReturnDateRef = useRef<Date | null>(null);
   const [currentView, setCurrentView] = useState<"日" | "週" | "2週間" | "月">(
     "2週間",
   );
@@ -1238,6 +1246,7 @@ export default function App() {
 
     return carRes.map((res) => {
       const isCurrentlyResizingThis = resizingResId === res.id;
+      const isSearchHighlighted = highlightedReservationId === res.id;
 
       const resStart = startOfDay(parseISO(res.start_at));
       let resEnd = endOfDay(parseISO(res.end_at));
@@ -1322,13 +1331,19 @@ export default function App() {
             justifyContent: "center",
             fontSize: "11px",
             fontWeight: "500",
-            boxShadow: isHovered
-              ? `0 8px 16px ${shadowColor}`
-              : `0 2px 5px ${shadowColor}`,
+            boxShadow: isSearchHighlighted
+              ? "0 0 0 3px #facc15, 0 8px 18px rgba(250, 204, 21, 0.45)"
+              : isHovered
+                ? `0 8px 16px ${shadowColor}`
+                : `0 2px 5px ${shadowColor}`,
             overflow: isHovered ? "visible" : "hidden",
             whiteSpace: "nowrap",
             cursor: resizingResId ? "ew-resize" : "grab",
-            zIndex: isHovered || isCurrentlyResizingThis ? 60 : 20,
+            zIndex: isSearchHighlighted
+              ? 80
+              : isHovered || isCurrentlyResizingThis
+                ? 60
+                : 20,
             lineHeight: "1.4",
             textAlign: "left",
             alignItems: "flex-start",
@@ -1422,6 +1437,119 @@ export default function App() {
         </div>
       );
     });
+  };
+
+  // ★ お客様名検索に一致する確定予約一覧
+  // 日付順に並べ、↑↓ボタンで順番に移動できるようにする。
+  const customerSearchMatches = filterText.trim()
+    ? confirmedReservations
+      .filter((res) =>
+        res.customer_name
+          .toLowerCase()
+          .includes(filterText.toLowerCase().trim()),
+      )
+      .sort(
+        (a, b) =>
+          parseISO(a.start_at).getTime() - parseISO(b.start_at).getTime(),
+      )
+    : [];
+
+  // 検索結果の指定予約へカレンダーを移動し、その予約バーを強調表示する。
+  const focusCustomerSearchMatch = (
+    matches: DaishaReservation[],
+    index: number,
+  ) => {
+    if (matches.length === 0) return;
+
+    const safeIndex = ((index % matches.length) + matches.length) % matches.length;
+    const target = matches[safeIndex];
+
+    setSearchMatchIndex(safeIndex);
+    setHighlightedReservationId(target.id);
+    setCurrentStartDate(startOfDay(parseISO(target.start_at)));
+  };
+
+  // 検索欄変更時。
+  // お客様名に一致する予約がある場合は、
+  // 「今日以降で最も近い予約」→ なければ「直近の過去予約」へ自動移動する。
+  const handleSearchTextChange = (value: string) => {
+    setFilterText(value);
+
+    const keyword = value.toLowerCase().trim();
+
+    if (!keyword) {
+      setSearchMatchIndex(0);
+      setHighlightedReservationId(null);
+
+      if (searchReturnDateRef.current) {
+        setCurrentStartDate(searchReturnDateRef.current);
+        searchReturnDateRef.current = null;
+      }
+      return;
+    }
+
+    // カレンダー画面以外では従来どおり絞り込み検索のみ。
+    if (activeTab !== "calendar") {
+      setSearchMatchIndex(0);
+      setHighlightedReservationId(null);
+      return;
+    }
+
+    const matches = confirmedReservations
+      .filter((res) =>
+        res.customer_name.toLowerCase().includes(keyword),
+      )
+      .sort(
+        (a, b) =>
+          parseISO(a.start_at).getTime() - parseISO(b.start_at).getTime(),
+      );
+
+    // お客様名に一致しない場合は、車名・ナンバー検索として扱う。
+    if (matches.length === 0) {
+      if (highlightedReservationId && searchReturnDateRef.current) {
+        setCurrentStartDate(searchReturnDateRef.current);
+        searchReturnDateRef.current = null;
+      }
+
+      setSearchMatchIndex(0);
+      setHighlightedReservationId(null);
+      return;
+    }
+
+    // お客様名検索開始前の日付を記憶し、検索解除時に戻す。
+    if (!searchReturnDateRef.current) {
+      searchReturnDateRef.current = currentStartDate;
+    }
+
+    const todayStart = startOfDay(new Date());
+    const futureIndex = matches.findIndex(
+      (res) => !isBefore(parseISO(res.start_at), todayStart),
+    );
+    const initialIndex = futureIndex >= 0 ? futureIndex : matches.length - 1;
+
+    focusCustomerSearchMatch(matches, initialIndex);
+  };
+
+  // ↑↓で前後の検索結果へ移動。端まで行ったら反対側へループする。
+  const moveCustomerSearchMatch = (direction: -1 | 1) => {
+    if (customerSearchMatches.length === 0) return;
+
+    focusCustomerSearchMatch(
+      customerSearchMatches,
+      searchMatchIndex + direction,
+    );
+  };
+
+  // 検索を解除し、検索開始前のカレンダー日付へ戻す。
+  const clearSearch = () => {
+    setFilterText("");
+    setSearchMatchIndex(0);
+    setHighlightedReservationId(null);
+
+    if (searchReturnDateRef.current) {
+      setCurrentStartDate(searchReturnDateRef.current);
+      searchReturnDateRef.current = null;
+    }
   };
 
   // ★ 検索フィルタリング（車名・ナンバー・お客様名）
@@ -1708,20 +1836,105 @@ export default function App() {
                 : "明日貸出予定一覧"}
           </span>
           {!isMobile && (
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <input
-                type="text"
-                placeholder="車名・ナンバー・お客様名で検索"
-                value={filterText}
-                onChange={(e) => setFilterText(e.target.value)}
-                style={{
-                  width: "260px",
-                  padding: "6px 12px",
-                  border: "1px solid #cbd5e1",
-                  borderRadius: "6px",
-                  fontSize: "13px",
-                }}
-              />
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ position: "relative" }}>
+                <input
+                  type="text"
+                  placeholder="車名・ナンバー・お客様名で検索"
+                  value={filterText}
+                  onChange={(e) => handleSearchTextChange(e.target.value)}
+                  style={{
+                    width: customerSearchMatches.length > 0 ? "230px" : "260px",
+                    padding: filterText ? "6px 32px 6px 12px" : "6px 12px",
+                    border: "1px solid #cbd5e1",
+                    borderRadius: "6px",
+                    fontSize: "13px",
+                    boxSizing: "border-box",
+                  }}
+                />
+                {filterText && (
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    title="検索をクリア"
+                    style={{
+                      position: "absolute",
+                      right: "6px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      border: "none",
+                      background: "transparent",
+                      color: "#94a3b8",
+                      cursor: "pointer",
+                      padding: "2px",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+
+              {activeTab === "calendar" && customerSearchMatches.length > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    padding: "3px 5px",
+                    border: "1px solid #cbd5e1",
+                    borderRadius: "6px",
+                    backgroundColor: "#fff",
+                  }}
+                >
+                  <span
+                    style={{
+                      minWidth: "44px",
+                      textAlign: "center",
+                      fontSize: "12px",
+                      color: "#475569",
+                      fontWeight: "bold",
+                    }}
+                    title="お客様名の予約検索結果"
+                  >
+                    {Math.min(searchMatchIndex + 1, customerSearchMatches.length)} /{" "}
+                    {customerSearchMatches.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => moveCustomerSearchMatch(-1)}
+                    title="前の予約"
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                      color: "#475569",
+                      cursor: "pointer",
+                      fontSize: "17px",
+                      lineHeight: 1,
+                      padding: "2px 5px",
+                    }}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveCustomerSearchMatch(1)}
+                    title="次の予約"
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                      color: "#475569",
+                      cursor: "pointer",
+                      fontSize: "17px",
+                      lineHeight: 1,
+                      padding: "2px 5px",
+                    }}
+                  >
+                    ↓
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </header>
@@ -1962,7 +2175,7 @@ export default function App() {
                       type="text"
                       placeholder="車名・ナンバー・お客様名で検索"
                       value={filterText}
-                      onChange={(e) => setFilterText(e.target.value)}
+                      onChange={(e) => handleSearchTextChange(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "8px 32px 8px 32px",
@@ -1974,7 +2187,7 @@ export default function App() {
                     />
                     {filterText && (
                       <button
-                        onClick={() => setFilterText("")}
+                        onClick={clearSearch}
                         style={{
                           position: "absolute",
                           right: "8px",
@@ -1993,6 +2206,57 @@ export default function App() {
                       </button>
                     )}
                   </div>
+
+                  {customerSearchMatches.length > 0 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        alignItems: "center",
+                        gap: "6px",
+                        marginTop: "-6px",
+                        marginBottom: "10px",
+                        fontSize: "12px",
+                        color: "#475569",
+                      }}
+                    >
+                      <span style={{ fontWeight: "bold" }}>
+                        {Math.min(
+                          searchMatchIndex + 1,
+                          customerSearchMatches.length,
+                        )}{" "}
+                        / {customerSearchMatches.length}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => moveCustomerSearchMatch(-1)}
+                        title="前の予約"
+                        style={{
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "5px",
+                          backgroundColor: "#fff",
+                          cursor: "pointer",
+                          padding: "2px 8px",
+                        }}
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveCustomerSearchMatch(1)}
+                        title="次の予約"
+                        style={{
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "5px",
+                          backgroundColor: "#fff",
+                          cursor: "pointer",
+                          padding: "2px 8px",
+                        }}
+                      >
+                        ↓
+                      </button>
+                    </div>
+                  )}
 
                   {/* アコーディオン一覧 */}
                   {filteredCars.length === 0 ? (
