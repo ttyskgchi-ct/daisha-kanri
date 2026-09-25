@@ -70,6 +70,7 @@ export interface DaishaMaster {
   last_oil_change_date: string;
   has_etc: boolean;
   note?: string | null;
+  retired_at?: string | null;
 }
 
 export interface DaishaReservation {
@@ -1307,7 +1308,10 @@ export default function App() {
     try {
       const { error } = await supabase
         .from("daisha_masters")
-        .update({ status: "非稼働" })
+        .update({
+          status: "非稼働",
+          retired_at: new Date().toISOString(),
+        })
         .eq("id", carId);
 
       if (error) throw error;
@@ -1632,11 +1636,9 @@ export default function App() {
   };
 
   // ★ 検索フィルタリング（車名・ナンバー・お客様名）
-  // カレンダーでは「貸出不可」「非稼働」の車両を表示しない。
-  // ※ 代車一覧そのものからは削除せず、カレンダー表示対象だけから除外する。
+  // ここではステータスで除外しない。
+  // 「代車一覧」では貸出不可の車両も含めて表示・編集できるようにする。
   const filteredCars = cars.filter((car) => {
-    if (car.status !== "貸出可") return false;
-
     if (!filterText.trim()) return true;
     const keyword = filterText.toLowerCase().trim();
 
@@ -1656,27 +1658,30 @@ export default function App() {
   });
 
   // ★ TOPページのカレンダー表示順専用
-  // 上から「軽自動車 → 普通車 → 社用車」の順に表示する。
+  // カレンダーに表示するのは「貸出可」の車両だけ。
+  // 「貸出不可」「非稼働」はカレンダーからのみ非表示にする。
+  // そのうえで、上から「軽自動車 → 普通車 → 社用車」の順に表示する。
   // 社用車は size_type に関係なく常に最下部へ固定する。
-  // ※ filteredCars 自体は変更しないため、「代車一覧」や新規予約時の候補順には影響しない。
-  const calendarCars = [...filteredCars].sort((a, b) => {
-    const getCalendarSortGroup = (car: DaishaMaster) => {
-      // 車名に「社用車」を含む車両は常に最下部
-      if (car.car_name.includes("社用車")) return 2;
+  const calendarCars = filteredCars
+    .filter((car) => car.status === "貸出可")
+    .sort((a, b) => {
+      const getCalendarSortGroup = (car: DaishaMaster) => {
+        // 車名に「社用車」を含む車両は常に最下部
+        if (car.car_name.includes("社用車")) return 2;
 
-      // 軽自動車を最上段
-      if (car.size_type === "軽自動車") return 0;
+        // 軽自動車を最上段
+        if (car.size_type === "軽自動車") return 0;
 
-      // 普通車をその次
-      return 1;
-    };
+        // 普通車をその次
+        return 1;
+      };
 
-    const groupDiff = getCalendarSortGroup(a) - getCalendarSortGroup(b);
-    if (groupDiff !== 0) return groupDiff;
+      const groupDiff = getCalendarSortGroup(a) - getCalendarSortGroup(b);
+      if (groupDiff !== 0) return groupDiff;
 
-    // 同じグループ内では従来どおり車名順を維持
-    return a.car_name.localeCompare(b.car_name, "ja");
-  });
+      // 同じグループ内では従来どおり車名順を維持
+      return a.car_name.localeCompare(b.car_name, "ja");
+    });
 
   // ─── 練習環境判定 ───
   // Vercel の練習用プロジェクトで VITE_APP_ENV=training を設定した場合のみ
