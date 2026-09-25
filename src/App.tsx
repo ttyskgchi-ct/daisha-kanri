@@ -1357,16 +1357,46 @@ export default function App() {
       const widthPercent = durationDays * oneDayWidthPercent;
 
       const isHovered = hoveredResId === res.id;
-      const isRepeat =
-        res.purpose.includes("修理") || res.customer_name.includes("山田商事");
-      const barColor = isRepeat ? "#0d9488" : "#3b82f6";
+
+      // ★ 予約内容ごとの色分け
+      // 車検       : 青
+      // 修理・整備 : 緑
+      // 先取り     : アンバー
+      // その他     : 紫
+      // 未知の値   : 青
+      const getReservationColor = (purpose: string) => {
+        if (purpose === "修理・整備" || purpose.includes("修理")) {
+          return {
+            background: "#0d9488",
+            shadow: "13,148,136",
+          };
+        }
+
+        if (purpose === "先取り") {
+          return {
+            background: "#d97706",
+            shadow: "217,119,6",
+          };
+        }
+
+        if (purpose === "その他") {
+          return {
+            background: "#7c3aed",
+            shadow: "124,58,237",
+          };
+        }
+
+        return {
+          background: "#3b82f6",
+          shadow: "59,130,246",
+        };
+      };
+
+      const reservationColor = getReservationColor(res.purpose);
+      const barColor = reservationColor.background;
       const shadowColor = isHovered
-        ? isRepeat
-          ? "rgba(13,148,136,0.4)"
-          : "rgba(59,130,246,0.4)"
-        : isRepeat
-          ? "rgba(13,148,136,0.15)"
-          : "rgba(59,130,246,0.15)";
+        ? `rgba(${reservationColor.shadow},0.4)`
+        : `rgba(${reservationColor.shadow},0.15)`;
       const periodText = `${format(parseISO(res.start_at), "M/d H:mm")}～${format(
         parseISO(res.end_at),
         "M/d H:mm",
