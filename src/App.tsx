@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import TomorrowRentalList from "./TomorrowRentalList";
+import ReturnRentalList from "./ReturnRentalList";
 
 // ==========================================================
 // 1. Supabase 接続設定
@@ -33,6 +34,27 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Missing Supabase environment variables in .env.local");
 }
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// ──────────────────────────────────────────────────────────
+// 返却代車一覧メニュー用アイコン
+// ユーザー提供SVGを、他メニューと同じ currentColor / size で使用する。
+// ──────────────────────────────────────────────────────────
+const ReturnListIcon = ({ size = 18 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 512 512"
+    fill="currentColor"
+    aria-hidden="true"
+    style={{ flexShrink: 0 }}
+  >
+    <path d="M405.076,56.585h-40.646v25.882c0,3.113-0.342,6.155-0.962,9.094h45.96c5.091,0,9.22,4.13,9.22,9.22v356.46c0,5.091-4.13,9.22-9.22,9.22H102.572c-5.091,0-9.22-4.13-9.22-9.22v-356.46c0-5.091,4.13-9.22,9.22-9.22h45.96c-0.62-2.938-0.961-5.981-0.961-9.094V56.585h-40.647c-25.461,0-46.102,20.641-46.102,46.103v363.21c0,25.461,20.641,46.102,46.102,46.102h298.152c25.461,0,46.102-20.641,46.102-46.102v-363.21C451.178,77.226,430.537,56.585,405.076,56.585z" />
+    <path d="M191.497,110.129h129.006c15.28,0,27.662-12.382,27.662-27.662v-3.177V57.943v-3.176c0-15.28-12.382-27.662-27.662-27.662h-34.96C284.153,11.929,271.534,0,256,0c-15.542,0-28.162,11.929-29.552,27.105h-34.951c-15.28,0-27.662,12.382-27.662,27.662v3.176v21.348v3.177C163.835,97.748,176.217,110.129,191.497,110.129zM256,16.265c7.481,0,13.549,6.068,13.549,13.548c0,7.489-6.068,13.557-13.549,13.557c-7.489,0-13.557-6.068-13.557-13.557C242.443,22.332,248.511,16.265,256,16.265z" />
+    <polygon points="174.358,215.127 186.239,203.247 218.904,170.574 207.031,158.701 174.358,191.366 153.575,170.574 141.693,182.454" />
+    <polygon points="207.031,244.091 174.358,276.756 153.575,255.964 141.693,267.845 174.358,300.518 186.239,288.637 218.904,255.964" />
+    <polygon points="153.575,341.354 141.693,353.235 174.358,385.908 186.239,374.027 218.904,341.354 207.031,329.481 174.358,362.146" />
+  </svg>
+);
 
 // ==========================================================
 // 2. 型定義
@@ -310,9 +332,9 @@ const CarAccordionItem: React.FC<{
 
 export default function App() {
   // ─── メイン画面切り替え ───
-  const [activeTab, setActiveTab] = useState<"calendar" | "cars" | "tomorrow">(
-    "calendar",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "calendar" | "cars" | "tomorrow" | "return"
+  >("calendar");
 
   // ─── 状態管理 ───
   const [cars, setCars] = useState<DaishaMaster[]>([]);
@@ -1799,6 +1821,30 @@ export default function App() {
           </button>
 
           <button
+            onClick={() => setActiveTab("return")}
+            style={{
+              padding: isMobile ? "6px 10px" : "12px 16px",
+              borderRadius: "8px",
+              backgroundColor:
+                activeTab === "return" ? "#eff6ff" : "transparent",
+              color: activeTab === "return" ? "#2563eb" : "#475569",
+              fontWeight: activeTab === "return" ? "bold" : "500",
+              border: "none",
+              textAlign: "left",
+              fontSize: isMobile ? "12px" : "14px",
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+              display: "flex",
+              alignItems: "center",
+              gap: isMobile ? "4px" : "10px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <ReturnListIcon size={isMobile ? 16 : 18} />
+            <span>返却代車一覧</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab("cars")}
             style={{
               padding: isMobile ? "6px 10px" : "12px 16px",
@@ -1897,7 +1943,9 @@ export default function App() {
               ? "代車貸出状況"
               : activeTab === "cars"
                 ? "代車マスター管理"
-                : "明日貸出予定一覧"}
+                : activeTab === "tomorrow"
+                  ? "明日貸出予定一覧"
+                  : "返却代車一覧"}
           </span>
           {!isMobile && (
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -2952,6 +3000,9 @@ export default function App() {
 
         {/* ─── タブ3：明日貸出予定一覧 ─── */}
         {activeTab === "tomorrow" && <TomorrowRentalList />}
+
+        {/* ─── タブ4：返却代車一覧 ─── */}
+        {activeTab === "return" && <ReturnRentalList />}
       </div>
 
       {/* ─── SP用 フローティング・アクション・ボタン (FAB) ─── */}
