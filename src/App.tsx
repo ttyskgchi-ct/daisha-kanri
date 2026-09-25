@@ -1632,7 +1632,11 @@ export default function App() {
   };
 
   // ★ 検索フィルタリング（車名・ナンバー・お客様名）
+  // カレンダーでは「貸出不可」「非稼働」の車両を表示しない。
+  // ※ 代車一覧そのものからは削除せず、カレンダー表示対象だけから除外する。
   const filteredCars = cars.filter((car) => {
+    if (car.status !== "貸出可") return false;
+
     if (!filterText.trim()) return true;
     const keyword = filterText.toLowerCase().trim();
 
