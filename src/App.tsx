@@ -2681,6 +2681,21 @@ export default function App() {
                                       : "未登録"}
                                   </span>
                                 </div>
+
+                                {car.note && (
+                                  <div
+                                    style={{
+                                      fontSize: "10px",
+                                      lineHeight: "1.25",
+                                      marginTop: "4px",
+                                      opacity: 0.95,
+                                      whiteSpace: "normal",
+                                      overflowWrap: "anywhere",
+                                    }}
+                                  >
+                                    備考: {car.note}
+                                  </div>
+                                )}
                               </div>
 
                               <div
@@ -4674,4 +4689,4 @@ export default function App() {
       )}
     </div>
   );
-}R
+}
