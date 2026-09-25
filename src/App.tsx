@@ -453,6 +453,8 @@ export default function App() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
+  const [editStartAt, setEditStartAt] = useState("");
+  const [editEndAt, setEditEndAt] = useState("");
   const [editCustomerName, setEditCustomerName] = useState("");
   const [editCarType, setEditCarType] = useState("");
   const [editPurpose, setEditPurpose] = useState("車検");
@@ -1033,6 +1035,27 @@ export default function App() {
       return;
     }
 
+    if (!editStartAt || !editEndAt) {
+      alert("貸出開始日時と返却予定日時を入力してください。");
+      return;
+    }
+
+    const updatedStart = new Date(editStartAt);
+    const updatedEnd = new Date(editEndAt);
+
+    if (
+      isNaN(updatedStart.getTime()) ||
+      isNaN(updatedEnd.getTime())
+    ) {
+      alert("貸出日時の入力内容を確認してください。");
+      return;
+    }
+
+    if (!isBefore(updatedStart, updatedEnd)) {
+      alert("返却予定日時は貸出開始日時より後に設定してください。");
+      return;
+    }
+
     let targetCarId = selectedReservation.car_id;
     let targetStatus = selectedReservation.status;
     let showWarning = false;
@@ -1052,6 +1075,25 @@ export default function App() {
       }
     }
 
+    // ★ 日時変更後のダブルブッキング事前チェック
+    // DB側の重複制約も残しているため、別PCから同時更新された場合も最終的にはDBで防止される。
+    if (targetCarId && targetStatus === "確定") {
+      const hasConflict = confirmedReservations.some(
+        (r) =>
+          r.car_id === targetCarId &&
+          r.id !== selectedReservation.id &&
+          isBefore(parseISO(r.start_at), updatedEnd) &&
+          isAfter(parseISO(r.end_at), updatedStart),
+      );
+
+      if (hasConflict) {
+        alert(
+          "変更後の日時には、同じ代車の別予約が入っているため変更できません。",
+        );
+        return;
+      }
+    }
+
     try {
       if (showWarning) {
         alert(
@@ -1062,6 +1104,8 @@ export default function App() {
       const { error } = await supabase
         .from("daisha_reservations")
         .update({
+          start_at: updatedStart.toISOString(),
+          end_at: updatedEnd.toISOString(),
           customer_name: editCustomerName,
           car_type: editCarType,
           purpose: editPurpose,
@@ -1078,8 +1122,19 @@ export default function App() {
       setIsEditMode(false);
       setIsDetailModalOpen(false);
       await fetchData();
-    } catch (err) {
+    } catch (err: any) {
       console.error("予約の更新に失敗しました:", err);
+
+      if (
+        err?.code === "23P01" ||
+        err?.message?.includes("prevent_overlapping_reservations")
+      ) {
+        alert(
+          "変更後の車両・時間帯には、既に別の予約が入っています。日時を変更して再度お試しください。",
+        );
+        return;
+      }
+
       alert("更新に失敗しました。");
     }
   };
@@ -1102,6 +1157,8 @@ export default function App() {
 
   const openDetailModal = (res: DaishaReservation) => {
     setSelectedReservation(res);
+    setEditStartAt(format(parseISO(res.start_at), "yyyy-MM-dd'T'HH:mm"));
+    setEditEndAt(format(parseISO(res.end_at), "yyyy-MM-dd'T'HH:mm"));
     setEditCustomerName(res.customer_name);
     setEditCarType(res.car_type || "");
     setEditPurpose(res.purpose);
@@ -3793,6 +3850,71 @@ export default function App() {
                     gap: "14px",
                   }}
                 >
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+                      gap: "16px",
+                      padding: "12px",
+                      backgroundColor: "#f8fafc",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <div>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          color: "#64748b",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        貸出開始日時
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={editStartAt}
+                        onChange={(e) => setEditStartAt(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "8px 12px",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "6px",
+                          backgroundColor: "#fff",
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          color: "#64748b",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        返却予定日時
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={editEndAt}
+                        onChange={(e) => setEditEndAt(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "8px 12px",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "6px",
+                          backgroundColor: "#fff",
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    </div>
+                  </div>
+
                   <div
                     style={{
                       display: "grid",
