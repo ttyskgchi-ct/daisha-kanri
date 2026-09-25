@@ -1630,19 +1630,26 @@ export default function App() {
   });
 
   // ★ TOPページのカレンダー表示順専用
-  // 「N-BOXカスタム(社用車) (5568)」だけを常に最下部へ固定する。
+  // 上から「軽自動車 → 普通車 → 社用車」の順に表示する。
+  // 社用車は size_type に関係なく常に最下部へ固定する。
   // ※ filteredCars 自体は変更しないため、「代車一覧」や新規予約時の候補順には影響しない。
   const calendarCars = [...filteredCars].sort((a, b) => {
-    const isTargetA =
-      a.car_name === "N-BOXカスタム(社用車)" &&
-      String(a.number_plate).includes("5568");
-    const isTargetB =
-      b.car_name === "N-BOXカスタム(社用車)" &&
-      String(b.number_plate).includes("5568");
+    const getCalendarSortGroup = (car: DaishaMaster) => {
+      // 車名に「社用車」を含む車両は常に最下部
+      if (car.car_name.includes("社用車")) return 2;
 
-    if (isTargetA && !isTargetB) return 1;
-    if (!isTargetA && isTargetB) return -1;
-    return 0;
+      // 軽自動車を最上段
+      if (car.size_type === "軽自動車") return 0;
+
+      // 普通車をその次
+      return 1;
+    };
+
+    const groupDiff = getCalendarSortGroup(a) - getCalendarSortGroup(b);
+    if (groupDiff !== 0) return groupDiff;
+
+    // 同じグループ内では従来どおり車名順を維持
+    return a.car_name.localeCompare(b.car_name, "ja");
   });
 
   // ─── 練習環境判定 ───
