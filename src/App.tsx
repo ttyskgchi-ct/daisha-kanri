@@ -1362,6 +1362,7 @@ export default function App() {
       // 車検       : 青
       // 修理・整備 : 緑
       // 先取り     : アンバー
+      // 納車まで   : ローズ
       // その他     : 紫
       // 未知の値   : 青
       const getReservationColor = (purpose: string) => {
@@ -1376,6 +1377,13 @@ export default function App() {
           return {
             background: "#d97706",
             shadow: "217,119,6",
+          };
+        }
+
+        if (purpose === "納車まで") {
+          return {
+            background: "#be185d",
+            shadow: "190,24,93",
           };
         }
 
@@ -1402,8 +1410,10 @@ export default function App() {
         "M/d H:mm",
       )}`;
 
-      const carTypeStr = res.car_type || "車種未入力";
-      const line1Text = `${res.customer_name} 様 [${carTypeStr} ${res.purpose}/${res.staff_name}]`;
+      const carTypePart = res.car_type?.trim()
+        ? `${res.car_type.trim()} `
+        : "";
+      const line1Text = `${res.customer_name} 様 [${carTypePart}${res.purpose}/${res.staff_name}]`;
       const line2Text = res.note ? `${periodText} ${res.note}` : periodText;
 
       const currentCar = cars.find((c) => c.id === carId);
@@ -3695,6 +3705,7 @@ export default function App() {
                         <option value="車検">車検</option>
                         <option value="修理・整備">修理・整備</option>
                         <option value="先取り">先取り</option>
+                        <option value="納車まで">納車まで</option>
                         <option value="その他">その他</option>
                       </select>
                     </div>
@@ -4140,6 +4151,7 @@ export default function App() {
                         <option value="車検">車検</option>
                         <option value="修理・整備">修理・整備</option>
                         <option value="先取り">先取り</option>
+                        <option value="納車まで">納車まで</option>
                         <option value="その他">その他</option>
                       </select>
                     </div>
