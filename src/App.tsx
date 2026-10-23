@@ -1764,7 +1764,7 @@ export default function App() {
             color: "#92400e",
             borderBottom: "1px solid #f59e0b",
             fontWeight: "bold",
-            fontSize: isMobile ? "12px" : "14px",
+            fontSize: isMobile ? "12px" : "13px",
             textAlign: "center",
             zIndex: 9999,
           }}
@@ -1776,8 +1776,8 @@ export default function App() {
       {/* ─── サイドメニュー ─── */}
       <aside
         style={{
-          width: isMobile ? "100%" : "240px",
-          minWidth: isMobile ? "100%" : "240px",
+          width: isMobile ? "100%" : "160px",
+          minWidth: isMobile ? "100%" : "160px",
           backgroundColor: "#fff",
           borderRight: isMobile ? "none" : "1px solid #e2e8f0",
           borderBottom: isMobile ? "1px solid #e2e8f0" : "none",
@@ -1793,7 +1793,7 @@ export default function App() {
       >
         <div
           style={{
-            padding: isMobile ? "0" : "20px",
+            padding: isMobile ? "0" : "12px",
             display: "flex",
             alignItems: "center",
             gap: "10px",
@@ -1802,7 +1802,7 @@ export default function App() {
         >
           <span
             style={{
-              fontSize: isMobile ? "14px" : "16px",
+              fontSize: isMobile ? "14px" : "15px",
               fontWeight: "bold",
               color: "#0f172a",
               whiteSpace: "nowrap",
@@ -1824,7 +1824,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab("calendar")}
             style={{
-              padding: isMobile ? "6px 10px" : "12px 16px",
+              padding: isMobile ? "6px 10px" : "10px 12px",
               borderRadius: "8px",
               backgroundColor:
                 activeTab === "calendar" ? "#eff6ff" : "transparent",
@@ -1832,12 +1832,12 @@ export default function App() {
               fontWeight: activeTab === "calendar" ? "bold" : "500",
               border: "none",
               textAlign: "left",
-              fontSize: isMobile ? "12px" : "14px",
+              fontSize: isMobile ? "12px" : "13px",
               cursor: "pointer",
               transition: "all 0.15s ease",
               display: "flex",
               alignItems: "center",
-              gap: isMobile ? "4px" : "10px",
+              gap: isMobile ? "4px" : "8px",
               whiteSpace: "nowrap",
             }}
           >
@@ -1848,7 +1848,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab("tomorrow")}
             style={{
-              padding: isMobile ? "6px 10px" : "12px 16px",
+              padding: isMobile ? "6px 10px" : "10px 12px",
               borderRadius: "8px",
               backgroundColor:
                 activeTab === "tomorrow" ? "#eff6ff" : "transparent",
@@ -1856,12 +1856,12 @@ export default function App() {
               fontWeight: activeTab === "tomorrow" ? "bold" : "500",
               border: "none",
               textAlign: "left",
-              fontSize: isMobile ? "12px" : "14px",
+              fontSize: isMobile ? "12px" : "13px",
               cursor: "pointer",
               transition: "all 0.15s ease",
               display: "flex",
               alignItems: "center",
-              gap: isMobile ? "4px" : "10px",
+              gap: isMobile ? "4px" : "8px",
               whiteSpace: "nowrap",
             }}
           >
@@ -1872,7 +1872,7 @@ export default function App() {
           <button
             onClick={() => setActiveTab("return")}
             style={{
-              padding: isMobile ? "6px 10px" : "12px 16px",
+              padding: isMobile ? "6px 10px" : "10px 12px",
               borderRadius: "8px",
               backgroundColor:
                 activeTab === "return" ? "#eff6ff" : "transparent",
@@ -1880,12 +1880,12 @@ export default function App() {
               fontWeight: activeTab === "return" ? "bold" : "500",
               border: "none",
               textAlign: "left",
-              fontSize: isMobile ? "12px" : "14px",
+              fontSize: isMobile ? "12px" : "13px",
               cursor: "pointer",
               transition: "all 0.15s ease",
               display: "flex",
               alignItems: "center",
-              gap: isMobile ? "4px" : "10px",
+              gap: isMobile ? "4px" : "8px",
               whiteSpace: "nowrap",
             }}
           >
@@ -1896,19 +1896,19 @@ export default function App() {
           <button
             onClick={() => setActiveTab("cars")}
             style={{
-              padding: isMobile ? "6px 10px" : "12px 16px",
+              padding: isMobile ? "6px 10px" : "10px 12px",
               borderRadius: "8px",
               backgroundColor: activeTab === "cars" ? "#eff6ff" : "transparent",
               color: activeTab === "cars" ? "#2563eb" : "#475569",
               fontWeight: activeTab === "cars" ? "bold" : "500",
               border: "none",
               textAlign: "left",
-              fontSize: isMobile ? "12px" : "14px",
+              fontSize: isMobile ? "12px" : "13px",
               cursor: "pointer",
               transition: "all 0.15s ease",
               display: "flex",
               alignItems: "center",
-              gap: isMobile ? "4px" : "10px",
+              gap: isMobile ? "4px" : "8px",
               whiteSpace: "nowrap",
             }}
           >
@@ -1968,137 +1968,77 @@ export default function App() {
           backgroundColor: "#f8fafc",
         }}
       >
-        <header
-          style={{
-            height: isMobile ? "auto" : "60px",
-            backgroundColor: "#fff",
-            borderBottom: "1px solid #e2e8f0",
-            display: "flex",
-            flexDirection: isMobile ? "column" : "row",
-            alignItems: isMobile ? "stretch" : "center",
-            justifyContent: "space-between",
-            padding: isMobile ? "12px 16px" : "0 24px",
-            gap: isMobile ? "8px" : "0",
-          }}
-        >
-          <span
+        {(isMobile || activeTab !== "calendar") && (
+          <header
             style={{
-              fontSize: isMobile ? "16px" : "18px",
-              fontWeight: "bold",
-              color: "#1e293b",
+              height: isMobile ? "auto" : "60px",
+              backgroundColor: "#fff",
+              borderBottom: "1px solid #e2e8f0",
+              display: "flex",
+              flexDirection: isMobile ? "column" : "row",
+              alignItems: isMobile ? "stretch" : "center",
+              justifyContent: "space-between",
+              padding: isMobile ? "12px 16px" : "0 24px",
+              gap: isMobile ? "8px" : "0",
             }}
           >
-            {activeTab === "calendar"
-              ? "代車貸出状況"
-              : activeTab === "cars"
+            <span
+              style={{
+                fontSize: isMobile ? "16px" : "18px",
+                fontWeight: "bold",
+                color: "#1e293b",
+              }}
+            >
+              {activeTab === "cars"
                 ? "代車マスター管理"
                 : activeTab === "tomorrow"
                   ? "明日貸出予定一覧"
                   : "返却代車一覧"}
-          </span>
-          {!isMobile && (
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <div style={{ position: "relative" }}>
-                <input
-                  type="text"
-                  placeholder="車名・ナンバー・お客様名で検索"
-                  value={filterText}
-                  onChange={(e) => handleSearchTextChange(e.target.value)}
-                  style={{
-                    width: customerSearchMatches.length > 0 ? "230px" : "260px",
-                    padding: filterText ? "6px 32px 6px 12px" : "6px 12px",
-                    border: "1px solid #cbd5e1",
-                    borderRadius: "6px",
-                    fontSize: "13px",
-                    boxSizing: "border-box",
-                  }}
-                />
-                {filterText && (
-                  <button
-                    type="button"
-                    onClick={clearSearch}
-                    title="検索をクリア"
+            </span>
+            {!isMobile && (
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="text"
+                    placeholder="車名・ナンバー・お客様名で検索"
+                    value={filterText}
+                    onChange={(e) => handleSearchTextChange(e.target.value)}
                     style={{
-                      position: "absolute",
-                      right: "6px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      border: "none",
-                      background: "transparent",
-                      color: "#94a3b8",
-                      cursor: "pointer",
-                      padding: "2px",
-                      display: "flex",
-                      alignItems: "center",
+                      width: customerSearchMatches.length > 0 ? "230px" : "260px",
+                      padding: filterText ? "6px 32px 6px 12px" : "6px 12px",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "6px",
+                      fontSize: "13px",
+                      boxSizing: "border-box",
                     }}
-                  >
-                    <X size={16} />
-                  </button>
-                )}
-              </div>
-
-              {activeTab === "calendar" && customerSearchMatches.length > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    padding: "3px 5px",
-                    border: "1px solid #cbd5e1",
-                    borderRadius: "6px",
-                    backgroundColor: "#fff",
-                  }}
-                >
-                  <span
-                    style={{
-                      minWidth: "44px",
-                      textAlign: "center",
-                      fontSize: "12px",
-                      color: "#475569",
-                      fontWeight: "bold",
-                    }}
-                    title="お客様名の予約検索結果"
-                  >
-                    {Math.min(searchMatchIndex + 1, customerSearchMatches.length)} /{" "}
-                    {customerSearchMatches.length}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => moveCustomerSearchMatch(-1)}
-                    title="前の予約"
-                    style={{
-                      border: "none",
-                      background: "transparent",
-                      color: "#475569",
-                      cursor: "pointer",
-                      fontSize: "17px",
-                      lineHeight: 1,
-                      padding: "2px 5px",
-                    }}
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => moveCustomerSearchMatch(1)}
-                    title="次の予約"
-                    style={{
-                      border: "none",
-                      background: "transparent",
-                      color: "#475569",
-                      cursor: "pointer",
-                      fontSize: "17px",
-                      lineHeight: 1,
-                      padding: "2px 5px",
-                    }}
-                  >
-                    ↓
-                  </button>
+                  />
+                  {filterText && (
+                    <button
+                      type="button"
+                      onClick={clearSearch}
+                      title="検索をクリア"
+                      style={{
+                        position: "absolute",
+                        right: "6px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        border: "none",
+                        background: "transparent",
+                        color: "#94a3b8",
+                        cursor: "pointer",
+                        padding: "2px",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
-        </header>
+              </div>
+            )}
+          </header>
+        )}
 
         {/* ─── タブ1：カレンダー画面 ─── */}
         {activeTab === "calendar" && (
@@ -2468,6 +2408,7 @@ export default function App() {
                       justifyContent: "space-between",
                       alignItems: "center",
                       marginBottom: "16px",
+                      gap: "12px",
                     }}
                   >
                     <div
@@ -2487,9 +2428,7 @@ export default function App() {
                         今日
                       </button>
                       <button
-                        onClick={() =>
-                          setCurrentStartDate(addDays(currentStartDate, -7))
-                        }
+                        onClick={() => setCurrentStartDate(addDays(currentStartDate, -7))}
                         style={{
                           padding: "6px 10px",
                           backgroundColor: "#fff",
@@ -2502,9 +2441,7 @@ export default function App() {
                         &lt;
                       </button>
                       <button
-                        onClick={() =>
-                          setCurrentStartDate(addDays(currentStartDate, 7))
-                        }
+                        onClick={() => setCurrentStartDate(addDays(currentStartDate, 7))}
                         style={{
                           padding: "6px 10px",
                           backgroundColor: "#fff",
@@ -2522,6 +2459,7 @@ export default function App() {
                           fontWeight: "bold",
                           marginLeft: "8px",
                           color: "#1e293b",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {format(daysArray[0], "yyyy年M月d日")} ～{" "}
@@ -2532,30 +2470,107 @@ export default function App() {
                     <div
                       style={{
                         display: "flex",
-                        backgroundColor: "#e2e8f0",
-                        padding: "2px",
-                        borderRadius: "6px",
+                        alignItems: "center",
+                        gap: "8px",
+                        flexShrink: 0,
                       }}
                     >
-                      {(["日", "週", "2週間", "月"] as const).map((view) => (
-                        <button
-                          key={view}
-                          onClick={() => setCurrentView(view)}
+                      <div style={{ position: "relative" }}>
+                        <input
+                          type="text"
+                          placeholder="車名・ナンバー・お客様名で検索"
+                          value={filterText}
+                          onChange={(e) => handleSearchTextChange(e.target.value)}
                           style={{
-                            padding: "4px 10px",
-                            fontSize: "12px",
-                            border: "none",
-                            borderRadius: "4px",
-                            backgroundColor:
-                              currentView === view ? "#1e3a8a" : "transparent",
-                            color: currentView === view ? "#fff" : "#475569",
-                            fontWeight: currentView === view ? "bold" : "normal",
-                            cursor: "pointer",
+                            width: customerSearchMatches.length > 0 ? "220px" : "250px",
+                            padding: filterText ? "6px 32px 6px 12px" : "6px 12px",
+                            border: "1px solid #cbd5e1",
+                            borderRadius: "6px",
+                            fontSize: "13px",
+                            boxSizing: "border-box",
+                            backgroundColor: "#fff",
+                          }}
+                        />
+                        {filterText && (
+                          <button
+                            type="button"
+                            onClick={clearSearch}
+                            title="検索をクリア"
+                            style={{
+                              position: "absolute",
+                              right: "6px",
+                              top: "50%",
+                              transform: "translateY(-50%)",
+                              border: "none",
+                              background: "transparent",
+                              color: "#94a3b8",
+                              cursor: "pointer",
+                              padding: "2px",
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
+
+                      {customerSearchMatches.length > 0 && (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            padding: "3px 5px",
+                            border: "1px solid #cbd5e1",
+                            borderRadius: "6px",
+                            backgroundColor: "#fff",
                           }}
                         >
-                          {view}
-                        </button>
-                      ))}
+                          <span
+                            style={{
+                              minWidth: "44px",
+                              textAlign: "center",
+                              fontSize: "12px",
+                              color: "#475569",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            {Math.min(searchMatchIndex + 1, customerSearchMatches.length)} /{" "}
+                            {customerSearchMatches.length}
+                          </span>
+                          <button type="button" onClick={() => moveCustomerSearchMatch(-1)} style={{ border: "none", background: "transparent", color: "#475569", cursor: "pointer", fontSize: "17px", lineHeight: 1, padding: "2px 5px" }}>↑</button>
+                          <button type="button" onClick={() => moveCustomerSearchMatch(1)} style={{ border: "none", background: "transparent", color: "#475569", cursor: "pointer", fontSize: "17px", lineHeight: 1, padding: "2px 5px" }}>↓</button>
+                        </div>
+                      )}
+
+                      <div
+                        style={{
+                          display: "flex",
+                          backgroundColor: "#e2e8f0",
+                          padding: "2px",
+                          borderRadius: "6px",
+                        }}
+                      >
+                        {(["日", "週", "2週間", "月"] as const).map((view) => (
+                          <button
+                            key={view}
+                            onClick={() => setCurrentView(view)}
+                            style={{
+                              padding: "4px 10px",
+                              fontSize: "12px",
+                              border: "none",
+                              borderRadius: "4px",
+                              backgroundColor: currentView === view ? "#1e3a8a" : "transparent",
+                              color: currentView === view ? "#fff" : "#475569",
+                              fontWeight: currentView === view ? "bold" : "normal",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {view}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
