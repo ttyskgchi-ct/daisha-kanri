@@ -1936,23 +1936,39 @@ export default function App() {
               }}
               style={{
                 width: "100%",
-                padding: "10px",
+                padding: "9px 6px",
                 backgroundColor: "#1e3a8a",
                 color: "#fff",
                 border: "none",
                 borderRadius: "8px",
                 fontWeight: "bold",
+                fontSize: "12px",
+                lineHeight: 1,
                 cursor: "pointer",
                 boxShadow: "0 2px 4px rgba(30,58,138,0.2)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "8px",
+                gap: "5px",
                 whiteSpace: "nowrap",
+                textAlign: "center",
+                boxSizing: "border-box",
               }}
             >
-              <Plus size={18} />
-              <span>新規予約登録</span>
+              <span
+                aria-hidden="true"
+                style={{
+                  fontSize: "16px",
+                  lineHeight: 1,
+                  fontWeight: "500",
+                  flexShrink: 0,
+                }}
+              >
+                +
+              </span>
+              <span style={{ lineHeight: 1, whiteSpace: "nowrap" }}>
+                新規予約登録
+              </span>
             </button>
           </div>
         )}
