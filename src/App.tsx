@@ -1442,17 +1442,17 @@ export default function App() {
             width: isHovered ? "auto" : `calc(${widthPercent}% - 4px)`,
             minWidth: isHovered ? `calc(${widthPercent}% - 4px)` : "auto",
             marginLeft: "2px",
-            top: "18px",
-            height: isHovered ? "62px" : "54px",
+            top: "10px",
+            height: isHovered ? "50px" : "44px",
             backgroundColor: barColor,
             opacity: isCurrentlyResizingThis ? 0.8 : 1,
             color: "#fff",
             borderRadius: "6px",
-            padding: "4px 10px",
+            padding: "3px 8px",
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            fontSize: "11px",
+            fontSize: "10px",
             fontWeight: "500",
             boxShadow: isSearchHighlighted
               ? "0 0 0 3px #facc15, 0 8px 18px rgba(250, 204, 21, 0.45)"
@@ -1778,9 +1778,9 @@ export default function App() {
         style={{
           width: isMobile ? "100%" : "160px",
           minWidth: isMobile ? "100%" : "160px",
-          backgroundColor: "#fff",
-          borderRight: isMobile ? "none" : "1px solid #e2e8f0",
-          borderBottom: isMobile ? "1px solid #e2e8f0" : "none",
+          backgroundColor: "#1e3a8a",
+          borderRight: isMobile ? "none" : "1px solid #1e3a8a",
+          borderBottom: isMobile ? "1px solid rgba(255,255,255,0.18)" : "none",
           display: "flex",
           flexDirection: isMobile ? "row" : "column",
           flexWrap: isMobile ? "wrap" : "nowrap",
@@ -1797,14 +1797,16 @@ export default function App() {
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            borderBottom: isMobile ? "none" : "1px solid #f1f5f9",
+            borderBottom: isMobile
+              ? "none"
+              : "1px solid rgba(255,255,255,0.16)",
           }}
         >
           <span
             style={{
               fontSize: isMobile ? "14px" : "15px",
               fontWeight: "bold",
-              color: "#0f172a",
+              color: "#ffffff",
               whiteSpace: "nowrap",
             }}
           >
@@ -1827,8 +1829,10 @@ export default function App() {
               padding: isMobile ? "6px 10px" : "10px 12px",
               borderRadius: "8px",
               backgroundColor:
-                activeTab === "calendar" ? "#eff6ff" : "transparent",
-              color: activeTab === "calendar" ? "#2563eb" : "#475569",
+                activeTab === "calendar"
+                  ? "rgba(255,255,255,0.18)"
+                  : "transparent",
+              color: "#ffffff",
               fontWeight: activeTab === "calendar" ? "bold" : "500",
               border: "none",
               textAlign: "left",
@@ -1851,8 +1855,10 @@ export default function App() {
               padding: isMobile ? "6px 10px" : "10px 12px",
               borderRadius: "8px",
               backgroundColor:
-                activeTab === "tomorrow" ? "#eff6ff" : "transparent",
-              color: activeTab === "tomorrow" ? "#2563eb" : "#475569",
+                activeTab === "tomorrow"
+                  ? "rgba(255,255,255,0.18)"
+                  : "transparent",
+              color: "#ffffff",
               fontWeight: activeTab === "tomorrow" ? "bold" : "500",
               border: "none",
               textAlign: "left",
@@ -1875,8 +1881,10 @@ export default function App() {
               padding: isMobile ? "6px 10px" : "10px 12px",
               borderRadius: "8px",
               backgroundColor:
-                activeTab === "return" ? "#eff6ff" : "transparent",
-              color: activeTab === "return" ? "#2563eb" : "#475569",
+                activeTab === "return"
+                  ? "rgba(255,255,255,0.18)"
+                  : "transparent",
+              color: "#ffffff",
               fontWeight: activeTab === "return" ? "bold" : "500",
               border: "none",
               textAlign: "left",
@@ -1898,8 +1906,11 @@ export default function App() {
             style={{
               padding: isMobile ? "6px 10px" : "10px 12px",
               borderRadius: "8px",
-              backgroundColor: activeTab === "cars" ? "#eff6ff" : "transparent",
-              color: activeTab === "cars" ? "#2563eb" : "#475569",
+              backgroundColor:
+                activeTab === "cars"
+                  ? "rgba(255,255,255,0.18)"
+                  : "transparent",
+              color: "#ffffff",
               fontWeight: activeTab === "cars" ? "bold" : "500",
               border: "none",
               textAlign: "left",
@@ -1921,7 +1932,7 @@ export default function App() {
           <div
             style={{
               padding: "16px",
-              borderTop: "1px solid #f1f5f9",
+              borderTop: "1px solid rgba(255,255,255,0.16)",
             }}
           >
             <button
@@ -1937,15 +1948,15 @@ export default function App() {
               style={{
                 width: "100%",
                 padding: "9px 6px",
-                backgroundColor: "#1e3a8a",
-                color: "#fff",
-                border: "none",
+                backgroundColor: "#ffffff",
+                color: "#1e3a8a",
+                border: "1px solid rgba(255,255,255,0.55)",
                 borderRadius: "8px",
                 fontWeight: "bold",
                 fontSize: "12px",
                 lineHeight: 1,
                 cursor: "pointer",
-                boxShadow: "0 2px 4px rgba(30,58,138,0.2)",
+                boxShadow: "0 2px 6px rgba(15,23,42,0.22)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -2695,7 +2706,8 @@ export default function App() {
                               style={{
                                 display: "flex",
                                 borderBottom: "1px solid #f1f5f9",
-                                minHeight: "95px",
+                                height: "76px",
+                                minHeight: "76px",
                                 position: "relative",
                               }}
                             >
@@ -2704,8 +2716,9 @@ export default function App() {
                                   width: "220px",
                                   minWidth: "220px",
                                   borderRight: "1px solid #e2e8f0",
-                                  padding: "12px",
+                                  padding: "7px 10px",
                                   transition: "background-color 0.2s",
+                                  overflow: "hidden",
                                   ...carStyle,
                                   display: "flex",
                                   flexDirection: "column",
@@ -2714,7 +2727,7 @@ export default function App() {
                                 }}
                               >
                                 <div
-                                  style={{ fontSize: "14px", fontWeight: "bold" }}
+                                  style={{ fontSize: "13px", fontWeight: "bold" }}
                                 >
                                   {car.car_name}{" "}
                                   <span style={{ opacity: 0.8 }}>
@@ -2723,9 +2736,9 @@ export default function App() {
                                 </div>
                                 <div
                                   style={{
-                                    fontSize: "11px",
+                                    fontSize: "10px",
                                     opacity: 0.9,
-                                    marginTop: "4px",
+                                    marginTop: "2px",
                                     display: "flex",
                                     alignItems: "center",
                                     gap: "6px",
@@ -2765,12 +2778,14 @@ export default function App() {
                                 {car.note && (
                                   <div
                                     style={{
-                                      fontSize: "10px",
-                                      lineHeight: "1.25",
-                                      marginTop: "4px",
+                                      fontSize: "9px",
+                                      lineHeight: "1.2",
+                                      marginTop: "2px",
                                       opacity: 0.95,
-                                      whiteSpace: "normal",
-                                      overflowWrap: "anywhere",
+                                      whiteSpace: "nowrap",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      width: "100%",
                                     }}
                                   >
                                     備考: {car.note}
