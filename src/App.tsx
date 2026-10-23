@@ -1358,6 +1358,11 @@ export default function App() {
 
       const isHovered = hoveredResId === res.id;
 
+      // ★ リサイズ中はホバーによる「文字列に合わせた自動拡張」を無効化する。
+      // これにより、右端ハンドルのドラッグ位置と予約バーの見た目の幅が
+      // 常にリアルタイムで一致する。
+      const isHoverExpanded = isHovered && !isCurrentlyResizingThis;
+
       // ★ 予約内容ごとの色分け
       // 車検       : 青
       // 修理・整備 : 緑
@@ -1439,11 +1444,16 @@ export default function App() {
           style={{
             position: "absolute",
             left: `${leftPercent}%`,
-            width: isHovered ? "auto" : `calc(${widthPercent}% - 4px)`,
-            minWidth: isHovered ? `calc(${widthPercent}% - 4px)` : "auto",
+            width: isHoverExpanded
+              ? "max-content"
+              : `calc(${widthPercent}% - 4px)`,
+            minWidth: isHoverExpanded
+              ? `calc(${widthPercent}% - 4px)`
+              : "0",
+            boxSizing: "border-box",
             marginLeft: "2px",
             top: "10px",
-            height: isHovered ? "50px" : "44px",
+            height: isHoverExpanded ? "50px" : "44px",
             backgroundColor: barColor,
             opacity: isCurrentlyResizingThis ? 0.8 : 1,
             color: "#fff",
@@ -1456,15 +1466,15 @@ export default function App() {
             fontWeight: "500",
             boxShadow: isSearchHighlighted
               ? "0 0 0 3px #facc15, 0 8px 18px rgba(250, 204, 21, 0.45)"
-              : isHovered
+              : isHoverExpanded
                 ? `0 8px 16px ${shadowColor}`
                 : `0 2px 5px ${shadowColor}`,
-            overflow: isHovered ? "visible" : "hidden",
+            overflow: isHoverExpanded ? "visible" : "hidden",
             whiteSpace: "nowrap",
             cursor: resizingResId ? "ew-resize" : "grab",
             zIndex: isSearchHighlighted
               ? 80
-              : isHovered || isCurrentlyResizingThis
+              : isHoverExpanded || isCurrentlyResizingThis
                 ? 60
                 : 20,
             lineHeight: "1.4",
@@ -1474,7 +1484,7 @@ export default function App() {
               ? "none"
               : "height 0.15s ease-out, transform 0.15s ease-out, box-shadow 0.15s ease-out",
             transform:
-              isHovered && !isCurrentlyResizingThis
+              isHoverExpanded
                 ? "scale(1.01) translateY(-2px)"
                 : "scale(1) translateY(0)",
             pointerEvents: "auto",
@@ -1483,12 +1493,13 @@ export default function App() {
           <div
             style={{
               width: "100%",
+              minWidth: 0,
               textAlign: "left",
               fontSize: "12px",
               lineHeight: "1.2",
               fontWeight: "bold",
-              overflow: isHovered ? "visible" : "hidden",
-              textOverflow: isHovered ? "unset" : "ellipsis",
+              overflow: isHoverExpanded ? "visible" : "hidden",
+              textOverflow: isHoverExpanded ? "unset" : "ellipsis",
               whiteSpace: "nowrap",
               pointerEvents: "none",
             }}
@@ -1499,12 +1510,13 @@ export default function App() {
           <div
             style={{
               width: "100%",
+              minWidth: 0,
               textAlign: "left",
               fontSize: "10.5px",
               lineHeight: "1.15",
               opacity: 0.92,
-              overflow: isHovered ? "visible" : "hidden",
-              textOverflow: isHovered ? "unset" : "ellipsis",
+              overflow: isHoverExpanded ? "visible" : "hidden",
+              textOverflow: isHoverExpanded ? "unset" : "ellipsis",
               whiteSpace: "nowrap",
               marginTop: "2px",
               display: "flex",
@@ -1528,7 +1540,16 @@ export default function App() {
                 {displayBadgeType === "軽自動車" ? "軽限定" : "普通車限定"}
               </span>
             )}
-            <span>{line2Text}</span>
+            <span
+              style={{
+                minWidth: 0,
+                overflow: isHoverExpanded ? "visible" : "hidden",
+                textOverflow: isHoverExpanded ? "unset" : "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {line2Text}
+            </span>
           </div>
 
           {/* ★ 右端の伸縮ハンドル */}
