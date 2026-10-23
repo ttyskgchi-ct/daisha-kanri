@@ -1448,7 +1448,7 @@ export default function App() {
             opacity: isCurrentlyResizingThis ? 0.8 : 1,
             color: "#fff",
             borderRadius: "6px",
-            padding: "3px 8px",
+            padding: "4px 8px",
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
@@ -1484,6 +1484,8 @@ export default function App() {
             style={{
               width: "100%",
               textAlign: "left",
+              fontSize: "12px",
+              lineHeight: "1.2",
               fontWeight: "bold",
               overflow: isHovered ? "visible" : "hidden",
               textOverflow: isHovered ? "unset" : "ellipsis",
@@ -1498,8 +1500,9 @@ export default function App() {
             style={{
               width: "100%",
               textAlign: "left",
-              fontSize: "10px",
-              opacity: 0.9,
+              fontSize: "10.5px",
+              lineHeight: "1.15",
+              opacity: 0.92,
               overflow: isHovered ? "visible" : "hidden",
               textOverflow: isHovered ? "unset" : "ellipsis",
               whiteSpace: "nowrap",
@@ -1515,7 +1518,7 @@ export default function App() {
                 style={{
                   backgroundColor: "#ef4444",
                   color: "#fff",
-                  fontSize: "9px",
+                  fontSize: "9.5px",
                   padding: "1px 5px",
                   borderRadius: "3px",
                   fontWeight: "bold",
