@@ -72,8 +72,21 @@ export default function TomorrowRentalList() {
   const fetchTomorrowList = async () => {
     setLoading(true);
     try {
-      const targetStart = `${selectedDate}T00:00:00.000Z`;
-      const targetEnd = `${selectedDate}T23:59:59.999Z`;
+      // ★ 対象日の区切りは日本時間（JST）の 0:00 を基準にする。
+      // 例: 2026-10-31 を選択した場合
+      //   開始: 2026-10-31 00:00:00 JST = 2026-10-30 15:00:00 UTC
+      //   終了: 2026-11-01 00:00:00 JST = 2026-10-31 15:00:00 UTC
+      //
+      // これまで末尾に "Z" を付けて UTC 0:00〜23:59 としていたため、
+      // JSTでは 9:00 が日付境界になり、0:00〜8:59 の予約が前日に
+      // 表示される問題が発生していた。
+      const targetStartDate = new Date(`${selectedDate}T00:00:00+09:00`);
+      const targetEndDate = new Date(
+        targetStartDate.getTime() + 24 * 60 * 60 * 1000,
+      );
+
+      const targetStart = targetStartDate.toISOString();
+      const targetEnd = targetEndDate.toISOString();
 
       // 1. 指定日の確定予約を取得
       //    明日貸出予定で表示する予約情報をまとめて取得する
@@ -85,7 +98,7 @@ export default function TomorrowRentalList() {
         .eq("status", "確定")
         .not("car_id", "is", null)
         .gte("start_at", targetStart)
-        .lte("start_at", targetEnd);
+        .lt("start_at", targetEnd);
 
       if (resError) throw resError;
 
