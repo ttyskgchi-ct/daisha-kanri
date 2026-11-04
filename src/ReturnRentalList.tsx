@@ -49,12 +49,15 @@ export default function ReturnRentalList() {
     setLoading(true);
 
     try {
-      // selectedDate は利用者のローカル日付として扱い、
-      // SupabaseへはISO形式に変換して検索する。
-      const localStart = new Date(`${selectedDate}T00:00:00`);
-      const localEnd = new Date(`${selectedDate}T23:59:59.999`);
-      const targetStart = localStart.toISOString();
-      const targetEnd = localEnd.toISOString();
+      // ★ 対象日の区切りは日本時間（JST）の0:00を基準にする。
+      // 明日貸出予定リストと同じ日付境界に統一する。
+      const targetStartDate = new Date(`${selectedDate}T00:00:00+09:00`);
+      const targetEndDate = new Date(
+        targetStartDate.getTime() + 24 * 60 * 60 * 1000,
+      );
+
+      const targetStart = targetStartDate.toISOString();
+      const targetEnd = targetEndDate.toISOString();
 
       // 1. 指定日に「返却予定」の確定予約を取得
       const { data: resData, error: resError } = await supabase
@@ -65,7 +68,7 @@ export default function ReturnRentalList() {
         .eq("status", "確定")
         .not("car_id", "is", null)
         .gte("end_at", targetStart)
-        .lte("end_at", targetEnd)
+        .lt("end_at", targetEnd)
         .order("end_at", { ascending: true });
 
       if (resError) throw resError;

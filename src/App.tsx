@@ -1324,20 +1324,42 @@ export default function App() {
 
   // ─── 予約バー描画 (PC用) ───
   const renderReservationBars = (carId: string) => {
-    const carRes = confirmedReservations.filter((r) => r.car_id === carId);
+    const carRes = confirmedReservations
+      .filter((r) => r.car_id === carId)
+      .sort(
+        (a, b) =>
+          parseISO(a.start_at).getTime() - parseISO(b.start_at).getTime(),
+      );
     const oneDayWidthPercent = 100 / daysCount;
+
+    const isSameCalendarDay = (a: Date, b: Date) =>
+      format(a, "yyyy-MM-dd") === format(b, "yyyy-MM-dd");
 
     return carRes.map((res) => {
       const isCurrentlyResizingThis = resizingResId === res.id;
       const isSearchHighlighted = highlightedReservationId === res.id;
 
-      const resStart = startOfDay(parseISO(res.start_at));
-      let resEnd = endOfDay(parseISO(res.end_at));
+      const actualStart = parseISO(res.start_at);
+      const actualEnd = parseISO(res.end_at);
+
+      const resStart = startOfDay(actualStart);
+      let resEnd = endOfDay(actualEnd);
+
+      // リサイズ中は、見た目上の返却日もドラッグ先に追従させる。
+      let visualActualEnd = actualEnd;
 
       if (isCurrentlyResizingThis && resizingCurrentTargetDate) {
         const potentialEnd = endOfDay(resizingCurrentTargetDate);
         if (!isBefore(potentialEnd, resStart)) {
           resEnd = potentialEnd;
+
+          visualActualEnd = new Date(resizingCurrentTargetDate);
+          visualActualEnd.setHours(
+            actualEnd.getHours(),
+            actualEnd.getMinutes(),
+            actualEnd.getSeconds(),
+            actualEnd.getMilliseconds(),
+          );
         }
       }
 
@@ -1353,8 +1375,51 @@ export default function App() {
       const displayEnd = isAfter(resEnd, timelineEnd) ? timelineEnd : resEnd;
       const durationDays = differenceInDays(displayEnd, displayStart) + 1;
 
-      const leftPercent = startOffsetDays * oneDayWidthPercent;
-      const widthPercent = durationDays * oneDayWidthPercent;
+      let leftPercent = startOffsetDays * oneDayWidthPercent;
+      let widthPercent = durationDays * oneDayWidthPercent;
+
+      // 同一車両で、前予約の返却日とこの予約の貸出日が同じ場合。
+      // 実時間が重複していないときだけ、この予約を当日マス右半分から表示する。
+      const previousSameDayReservation = carRes.find((other) => {
+        if (other.id === res.id) return false;
+
+        const otherEnd = parseISO(other.end_at);
+
+        return (
+          isSameCalendarDay(otherEnd, actualStart) &&
+          otherEnd.getTime() <= actualStart.getTime()
+        );
+      });
+
+      // 同一車両で、この予約の返却日と次予約の貸出日が同じ場合。
+      // 実時間が重複していないときだけ、この予約を当日マス左半分まで表示する。
+      const nextSameDayReservation = carRes.find((other) => {
+        if (other.id === res.id) return false;
+
+        const otherStart = parseISO(other.start_at);
+
+        return (
+          isSameCalendarDay(visualActualEnd, otherStart) &&
+          visualActualEnd.getTime() <= otherStart.getTime()
+        );
+      });
+
+      if (
+        previousSameDayReservation &&
+        !isBefore(resStart, timelineStart)
+      ) {
+        leftPercent += oneDayWidthPercent / 2;
+        widthPercent -= oneDayWidthPercent / 2;
+      }
+
+      if (
+        nextSameDayReservation &&
+        !isAfter(resEnd, timelineEnd)
+      ) {
+        widthPercent -= oneDayWidthPercent / 2;
+      }
+
+      widthPercent = Math.max(widthPercent, oneDayWidthPercent / 2);
 
       const isHovered = hoveredResId === res.id;
 
