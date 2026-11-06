@@ -3300,11 +3300,22 @@ export default function App() {
           }}
           style={{
             position: "fixed",
+            // ★ ボタンの見た目サイズだけでなく、画面端からの余白も
+            // ピンチ倍率の逆数で補正する。
+            // これにより何倍に拡大しても、右端・下端から見た目約16pxを維持する。
             left: visualViewportRect
-              ? `${visualViewportRect.offsetLeft + visualViewportRect.width - 72}px`
+              ? `${visualViewportRect.offsetLeft +
+              visualViewportRect.width -
+              56 -
+              16 / Math.max(visualViewportRect.scale, 0.01)
+              }px`
               : "auto",
             top: visualViewportRect
-              ? `${visualViewportRect.offsetTop + visualViewportRect.height - 72}px`
+              ? `${visualViewportRect.offsetTop +
+              visualViewportRect.height -
+              56 -
+              16 / Math.max(visualViewportRect.scale, 0.01)
+              }px`
               : "auto",
             right: visualViewportRect ? "auto" : "16px",
             bottom: visualViewportRect
