@@ -383,6 +383,43 @@ export default function App() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // ★ SPのピンチ拡大時でもFABを「現在見えている画面」の右下へ追従させる
+  const [visualViewportRect, setVisualViewportRect] = useState<{
+    offsetLeft: number;
+    offsetTop: number;
+    width: number;
+    height: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) {
+      setVisualViewportRect(null);
+      return;
+    }
+
+    const updateVisualViewport = () => {
+      setVisualViewportRect({
+        offsetLeft: viewport.offsetLeft,
+        offsetTop: viewport.offsetTop,
+        width: viewport.width,
+        height: viewport.height,
+      });
+    };
+
+    updateVisualViewport();
+
+    viewport.addEventListener("resize", updateVisualViewport);
+    viewport.addEventListener("scroll", updateVisualViewport);
+    window.addEventListener("orientationchange", updateVisualViewport);
+
+    return () => {
+      viewport.removeEventListener("resize", updateVisualViewport);
+      viewport.removeEventListener("scroll", updateVisualViewport);
+      window.removeEventListener("orientationchange", updateVisualViewport);
+    };
+  }, []);
+
   // リサイズ専用のState
   const [resizingResId, setResizingResId] = useState<string | null>(null);
   const [resizingCurrentTargetDate, setResizingCurrentTargetDate] =
@@ -3261,8 +3298,16 @@ export default function App() {
           }}
           style={{
             position: "fixed",
-            bottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
-            right: "16px",
+            left: visualViewportRect
+              ? `${visualViewportRect.offsetLeft + visualViewportRect.width - 72}px`
+              : "auto",
+            top: visualViewportRect
+              ? `${visualViewportRect.offsetTop + visualViewportRect.height - 72}px`
+              : "auto",
+            right: visualViewportRect ? "auto" : "16px",
+            bottom: visualViewportRect
+              ? "auto"
+              : "calc(16px + env(safe-area-inset-bottom, 0px))",
             width: "56px",
             height: "56px",
             borderRadius: "28px",
