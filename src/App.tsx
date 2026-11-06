@@ -389,6 +389,7 @@ export default function App() {
     offsetTop: number;
     width: number;
     height: number;
+    scale: number;
   } | null>(null);
 
   useEffect(() => {
@@ -404,6 +405,7 @@ export default function App() {
         offsetTop: viewport.offsetTop,
         width: viewport.width,
         height: viewport.height,
+        scale: viewport.scale || 1,
       });
     };
 
@@ -3311,6 +3313,15 @@ export default function App() {
             width: "56px",
             height: "56px",
             borderRadius: "28px",
+
+            // ★ ピンチ拡大時もFABの見た目サイズを一定に保つ。
+            // ブラウザの拡大率と逆倍率で縮小し、
+            // 右下を基準点にすることで固定位置も崩さない。
+            transform: visualViewportRect
+              ? `scale(${1 / Math.max(visualViewportRect.scale, 0.01)})`
+              : "none",
+            transformOrigin: "right bottom",
+
             backgroundColor: "#1e3a8a",
             color: "#fff",
             border: "none",
